@@ -774,6 +774,54 @@ conexión real. El ciclo de vida de la aplicación, la ejecución contra
 PostgreSQL, los modelos y las migraciones se implementarán en Issues
 posteriores.
 
+## DT-018 — Convenciones de nombres de los metadatos
+
+**Estado:** Aprobada.
+
+### Contexto
+
+Los modelos de SQLAlchemy y las migraciones de Alembic necesitan identificar
+restricciones e índices de forma estable. Si PostgreSQL asignara todos los
+nombres automáticamente, una revisión o una reversión podría depender de
+nombres generados por el servidor y menos claros para la autora.
+
+### Alternativas consideradas
+
+- Convenciones centralizadas en `MetaData`.
+- Nombres escritos individualmente en cada modelo y restricción.
+- Nombres generados automáticamente por PostgreSQL.
+
+### Decisión
+
+Utilizar una sola instancia compartida de `MetaData` con convenciones para:
+
+- índices: `ix_<tabla>_<columna>`;
+- restricciones únicas: `uq_<tabla>_<columna>`;
+- restricciones `CHECK`: `ck_<tabla>_<columna>`;
+- claves foráneas: `fk_<tabla>_<columna>_<tabla_referida>`;
+- claves primarias: `pk_<tabla>`.
+
+La clase común `Base` heredará de `DeclarativeBase` y expondrá estos mismos
+metadatos a todos los modelos y, posteriormente, a Alembic.
+
+### Justificación
+
+La convención central evita repetir reglas en cada entidad y produce nombres
+comprensibles y reproducibles. Los nombres explícitos por restricción permiten
+control, pero aumentan el riesgo de omisiones o diferencias de formato. Los
+nombres generados por PostgreSQL son válidos para ejecutar el esquema, aunque
+ofrecen menor uniformidad para revisar migraciones.
+
+### Consecuencias
+
+Los modelos deberán heredar de la misma clase `Base`. Alembic utilizará
+`Base.metadata` como fuente de comparación cuando se configure la
+autogeneración. Una restricción excepcional podrá recibir un nombre explícito
+siempre que se justifique y no produzca colisiones.
+
+Este incremento solo define metadatos vacíos. No registra tablas, no configura
+Alembic, no genera migraciones y no ejecuta `Base.metadata.create_all()`.
+
 ## Decisiones pendientes
 
 Las siguientes decisiones requieren Issues separados:
