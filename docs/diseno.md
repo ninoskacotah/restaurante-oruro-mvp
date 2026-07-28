@@ -2,13 +2,10 @@
 
 ## Estado del documento
 
-Este documento se construirá gradualmente. El presente incremento define
-únicamente la arquitectura de componentes prevista para el MVP de Restaurant Las
-Retamas.
-
-El modelo entidad-relación con sus cardinalidades se incorporará en un Issue
-posterior, cuando se apruebe su diseño. Los componentes y casos de uso descritos
-aquí todavía no se presentan como implementados o desplegados.
+Este documento se construirá gradualmente. Los componentes, casos de uso y
+modelo de datos descritos corresponden al diseño previsto para el MVP de
+Restaurant Las Retamas. Todavía no se presentan como implementados o
+desplegados.
 
 ## Principios de la arquitectura
 
@@ -355,12 +352,235 @@ Los permisos, validaciones y cambios de estado se aplicarán en la API conforme
 a la máquina común definida en `docs/estados-pedido.md`. El orden conversacional
 detallado permanece documentado en `docs/flujo-conversacional.md`.
 
+## Modelo entidad-relación
+
+El modelo representa la información que deberá persistir el MVP. Sus entidades,
+atributos y cardinalidades constituyen un diseño conceptual: no equivalen
+todavía a tablas creadas, migraciones ejecutadas ni modelos SQLAlchemy
+implementados.
+
+```mermaid
+erDiagram
+    CLIENTE ||--o{ PEDIDO : realiza
+    MENU ||--o{ DETALLE_MENU : contiene
+    PLATO ||--o{ DETALLE_MENU : integra
+    PEDIDO ||--o{ DETALLE_PEDIDO : contiene
+    PLATO ||--o{ DETALLE_PEDIDO : referencia
+    PEDIDO ||--o{ COMPROBANTE_PAGO : recibe
+    ADMINISTRADOR o|--o{ COMPROBANTE_PAGO : revisa
+    PEDIDO ||--o{ ASIGNACION : conserva
+    REPARTIDOR ||--o{ ASIGNACION : recibe
+    ASIGNACION ||--o{ UBICACION_TRAYECTO : registra
+    ASIGNACION ||--o| EVIDENCIA_ENTREGA : aporta
+    PEDIDO ||--o{ HISTORIAL_ESTADO : registra
+    CLIENTE o|--o{ HISTORIAL_ESTADO : origina
+    REPARTIDOR o|--o{ HISTORIAL_ESTADO : origina
+    ADMINISTRADOR o|--o{ HISTORIAL_ESTADO : origina
+
+    CLIENTE {
+        int id PK
+        string chat_id UK
+        string nombre
+        string telefono
+        datetime fecha_registro
+    }
+
+    REPARTIDOR {
+        int id PK
+        string chat_id UK
+        string nombre
+        string telefono
+        boolean activo
+        datetime fecha_registro
+    }
+
+    ADMINISTRADOR {
+        int id PK
+        string nombre_usuario UK
+        string credencial_hash
+        boolean activo
+        datetime fecha_registro
+    }
+
+    PLATO {
+        int id PK
+        string nombre
+        string descripcion
+        decimal precio
+        boolean activo
+    }
+
+    MENU {
+        int id PK
+        date fecha UK
+        boolean activo
+    }
+
+    DETALLE_MENU {
+        int id PK
+        int menu_id FK
+        int plato_id FK
+        int stock
+        boolean disponible
+    }
+
+    PEDIDO {
+        int id PK
+        int cliente_id FK
+        string codigo_seguimiento UK
+        string estado_actual
+        decimal total
+        decimal entrega_latitud
+        decimal entrega_longitud
+        string referencia_entrega
+        datetime fecha_creacion
+    }
+
+    DETALLE_PEDIDO {
+        int id PK
+        int pedido_id FK
+        int plato_id FK
+        string nombre_plato
+        decimal precio_unitario
+        int cantidad
+        decimal subtotal
+    }
+
+    COMPROBANTE_PAGO {
+        int id PK
+        int pedido_id FK
+        int administrador_id FK
+        string archivo_referencia
+        string estado_revision
+        string observacion
+        datetime fecha_envio
+        datetime fecha_revision
+    }
+
+    ASIGNACION {
+        int id PK
+        int pedido_id FK
+        int repartidor_id FK
+        boolean activa
+        datetime fecha_asignacion
+        datetime fecha_acuse
+        datetime fecha_cierre
+    }
+
+    UBICACION_TRAYECTO {
+        int id PK
+        int asignacion_id FK
+        decimal latitud
+        decimal longitud
+        datetime fecha_registro
+    }
+
+    EVIDENCIA_ENTREGA {
+        int id PK
+        int asignacion_id FK
+        string tipo
+        string valor_referencia
+        datetime fecha_registro
+    }
+
+    HISTORIAL_ESTADO {
+        int id PK
+        int pedido_id FK
+        int cliente_id FK
+        int repartidor_id FK
+        int administrador_id FK
+        string estado_anterior
+        string estado_nuevo
+        string evento
+        string origen
+        datetime fecha_registro
+    }
+```
+
+### Entidades del catálogo y el menú
+
+`PLATO` conserva el catálogo administrable, mientras que `MENU` representa la
+oferta de una fecha. `DETALLE_MENU` resuelve la relación de muchos a muchos:
+un menú puede incorporar varios platos y un plato puede aparecer en distintos
+menús. La combinación de `menu_id` y `plato_id` deberá ser única para evitar
+repeticiones dentro de una misma fecha.
+
+La disponibilidad y el stock se ubican en `DETALLE_MENU` porque corresponden a
+la oferta concreta de un plato en un menú. El stock no podrá ser negativo.
+
+### Pedido y detalle confirmado
+
+Cada `PEDIDO` pertenece a un solo cliente y debe contener al menos un
+`DETALLE_PEDIDO` cuando se confirma. El detalle conserva el nombre y el precio
+unitario utilizados en ese momento, además de referenciar al plato. De esta
+manera, una modificación posterior del catálogo no altera el contenido
+histórico del pedido.
+
+La ubicación fija de entrega se conserva en `PEDIDO`. Es distinta de las
+ubicaciones generadas durante el trayecto. El código de seguimiento debe ser
+único y `estado_actual` debe corresponder a la máquina definida en
+`docs/estados-pedido.md`.
+
+### Comprobantes y revisión manual
+
+Un pedido puede reunir varios `COMPROBANTE_PAGO`, ya que un archivo rechazado
+puede ser sustituido por uno nuevo sin perder el historial. Cada comprobante
+pertenece a un solo pedido y puede permanecer sin revisor mientras está
+pendiente. Cuando se revisa, queda asociado como máximo a un administrador,
+junto con la decisión, la observación y las fechas correspondientes.
+
+El archivo del comprobante se representa mediante una referencia. El mecanismo
+concreto para almacenar fotografías continúa pendiente de una decisión técnica.
+
+### Asignaciones, seguimiento y entrega
+
+`ASIGNACION` relaciona un pedido con el repartidor elegido por el administrador.
+Un pedido puede acumular varias asignaciones, pero solo una podrá permanecer
+activa a la vez. La asignación conserva las fechas de creación, acuse y cierre
+para representar la reasignación sin eliminar el historial.
+
+Cada `UBICACION_TRAYECTO` pertenece a una asignación, no directamente al pedido.
+Así, los puntos de dos repartidores no se mezclan cuando existe una
+reasignación. La fecha de cada punto permite ordenar el rastro y determinar cuál
+fue la última ubicación recibida.
+
+La `EVIDENCIA_ENTREGA` también se vincula con la asignación responsable. Una
+asignación puede no tener evidencia mientras la entrega está pendiente y
+registrar una cuando se completa. Su tipo permite distinguir la fotografía del
+código proporcionado por el cliente. La forma definitiva de almacenar la
+fotografía o proteger el código deberá resolverse antes de implementar esta
+entidad.
+
+### Historial de estados y autoría
+
+`HISTORIAL_ESTADO` conserva el estado anterior, el nuevo estado, el evento y la
+fecha. Cada registro pertenece a un pedido. El campo `origen` permite
+diferenciar acciones del sistema y de los roles; las referencias opcionales a
+cliente, repartidor o administrador identifican al actor cuando corresponda.
+Solo una de estas referencias podrá representar al actor de un evento.
+
+El historial es acumulativo: las transiciones no se sobrescriben ni se eliminan
+cuando cambia `estado_actual`.
+
+### Reglas de integridad previstas
+
+- `chat_id`, `nombre_usuario`, `fecha` del menú y `codigo_seguimiento` deben ser
+  únicos dentro de su ámbito.
+- Las cantidades y el stock deben ser enteros no negativos; un detalle
+  confirmado requiere una cantidad mayor que cero.
+- Los importes monetarios deben usar precisión decimal.
+- Un pedido confirmado debe conservar al menos un detalle.
+- Solo una asignación de un pedido puede estar activa al mismo tiempo.
+- Un comprobante pendiente puede no tener administrador ni fecha de revisión.
+- Las ubicaciones y evidencias solo pueden registrarse sobre la asignación
+  vigente según las reglas del negocio.
+- Los estados almacenados deben pertenecer al conjunto definido en la máquina
+  de estados compartida.
+
 ## Elementos pendientes del diseño
 
 Permanecen pendientes para Issues posteriores:
 
-- modelo entidad-relación;
-- tablas y cardinalidades;
 - endpoints concretos;
 - estructura del código;
 - almacenamiento definitivo de archivos;
