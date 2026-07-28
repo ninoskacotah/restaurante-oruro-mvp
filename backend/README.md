@@ -100,6 +100,29 @@ Estos metadatos permitirán que Alembic compare los modelos con el esquema en un
 incremento posterior. Actualmente no contienen tablas registradas, no ejecutan
 SQL y no crean el esquema.
 
+## Migraciones
+
+Alembic está configurado para utilizar `Base.metadata` y obtener
+`DATABASE_URL` desde el entorno. `alembic.ini` no contiene credenciales.
+
+Inspeccionar las cabezas del historial desde `backend/`:
+
+```bash
+python -m alembic -c alembic.ini heads
+```
+
+Generar la representación SQL de las revisiones existentes sin abrir una
+conexión:
+
+```bash
+python -m alembic -c alembic.ini upgrade head --sql
+```
+
+El historial todavía no contiene revisiones. No debe ejecutarse
+`alembic revision`, `upgrade` en modo online ni otro comando que modifique una
+base hasta trabajar el Issue específico correspondiente. Toda revisión
+autogenerada deberá inspeccionarse antes del commit.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:
