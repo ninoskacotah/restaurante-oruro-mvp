@@ -154,17 +154,26 @@ de negocio al backend central.
 ## Evidencias y fotografías
 
 Los comprobantes de pago y las evidencias de entrega requieren almacenamiento
-persistente. El mecanismo concreto todavía no está seleccionado.
+persistente. Para el MVP se utilizará un directorio configurable en el sistema
+de archivos del VPS de Hetzner. Este directorio permanecerá fuera de los
+recursos públicos del panel y no se expondrá como una carpeta de descarga
+directa.
 
-Las alternativas que deberán evaluarse son:
+El bot descargará la fotografía recibida desde Telegram y la operación de
+negocio solicitará su conservación en el almacenamiento propio. PostgreSQL no
+guardará el contenido binario: conservará la ruta relativa, el nombre generado,
+el tipo MIME, el tamaño, la fecha y la relación con el comprobante o la
+asignación correspondiente.
 
-- sistema de archivos del VPS;
-- almacenamiento de objetos;
-- identificadores de archivos de Telegram;
-- una combinación de las opciones anteriores.
+Los nombres serán generados por el sistema y no incorporarán rutas ni nombres
+proporcionados por el usuario. Antes de aceptar un archivo deberán comprobarse
+el formato y el tamaño máximo configurado. La consulta se realizará mediante
+operaciones autenticadas y autorizadas de la aplicación.
 
-La selección se registrará en `docs/decisiones-tecnicas.md`. Este documento no
-afirma que alguna alternativa ya haya sido implementada.
+La base de datos y el directorio persistente deberán incluirse en una estrategia
+coordinada de respaldo. Esta decisión se registra en
+`docs/decisiones-tecnicas.md`; todavía no implica que el directorio, las
+validaciones, los respaldos o las operaciones de acceso estén implementados.
 
 ## Diagrama de componentes
 
@@ -179,7 +188,7 @@ flowchart LR
         ORM["Persistencia<br/>SQLAlchemy"]
         DB[("PostgreSQL")]
         Panel["Panel web<br/>Vue 3 + JavaScript + Vite"]
-        Archivos["Almacenamiento de fotografías<br/>mecanismo pendiente"]
+        Archivos["Directorio persistente de fotografías<br/>fuera del acceso público"]
 
         Bot --> API
         Panel --> API
@@ -451,6 +460,9 @@ erDiagram
         int pedido_id FK
         int administrador_id FK
         string archivo_referencia
+        string nombre_generado
+        string tipo_mime
+        int tamanio_bytes
         string estado_revision
         string observacion
         datetime fecha_envio
@@ -480,6 +492,8 @@ erDiagram
         int asignacion_id FK
         string tipo
         string valor_referencia
+        string tipo_mime
+        int tamanio_bytes
         datetime fecha_registro
     }
 
@@ -529,8 +543,9 @@ pertenece a un solo pedido y puede permanecer sin revisor mientras está
 pendiente. Cuando se revisa, queda asociado como máximo a un administrador,
 junto con la decisión, la observación y las fechas correspondientes.
 
-El archivo del comprobante se representa mediante una referencia. El mecanismo
-concreto para almacenar fotografías continúa pendiente de una decisión técnica.
+El comprobante conserva la referencia relativa al archivo del VPS y los
+metadatos necesarios para validarlo y localizarlo. El contenido binario no se
+almacena en PostgreSQL.
 
 ### Asignaciones, seguimiento y entrega
 
@@ -547,9 +562,10 @@ fue la última ubicación recibida.
 La `EVIDENCIA_ENTREGA` también se vincula con la asignación responsable. Una
 asignación puede no tener evidencia mientras la entrega está pendiente y
 registrar una cuando se completa. Su tipo permite distinguir la fotografía del
-código proporcionado por el cliente. La forma definitiva de almacenar la
-fotografía o proteger el código deberá resolverse antes de implementar esta
-entidad.
+código proporcionado por el cliente. Cuando sea una fotografía,
+`valor_referencia` conservará su ruta relativa y los metadatos describirán el
+archivo persistente. La forma concreta de generar y proteger el código deberá
+resolverse antes de implementar esa alternativa de confirmación.
 
 ### Historial de estados y autoría
 
@@ -583,7 +599,6 @@ Permanecen pendientes para Issues posteriores:
 
 - endpoints concretos;
 - estructura del código;
-- almacenamiento definitivo de archivos;
 - proveedor del mapa;
 - reglas detalladas de JWT;
 - arquitectura física del despliegue.
