@@ -706,6 +706,74 @@ Las referencias utilizadas son:
 La dependencia, configuración, migración inicial y ejecución sobre PostgreSQL
 se realizarán en Issues posteriores.
 
+## DT-017 — Acceso asíncrono a PostgreSQL
+
+**Estado:** Aprobada.
+
+### Contexto
+
+FastAPI y Aiogram utilizan operaciones asíncronas para atender solicitudes y
+esperar respuestas externas. La capa de persistencia debe definir cómo
+SQLAlchemy se comunicará con PostgreSQL sin mezclar modelos síncronos y
+asíncronos ni bloquear innecesariamente ese flujo.
+
+### Alternativas consideradas
+
+- SQLAlchemy asíncrono con Psycopg 3.
+- SQLAlchemy asíncrono con asyncpg.
+- SQLAlchemy síncrono con Psycopg 3.
+
+### Decisión
+
+Utilizar SQLAlchemy 2 en modo asíncrono con Psycopg 3. La URL empleará el
+dialecto `postgresql+psycopg` y se construirá desde la configuración del
+entorno. Las sesiones se crearán mediante `async_sessionmaker` y no se
+compartirán entre tareas concurrentes.
+
+Cada unidad de trabajo confirmará sus cambios al finalizar correctamente. Ante
+una excepción realizará `rollback()`, conservará el error original y cerrará la
+sesión. El motor también dispondrá de un cierre explícito mediante `dispose()`.
+
+### Justificación
+
+Psycopg 3 es el adaptador actual de PostgreSQL para proyectos nuevos y ofrece
+interfaces síncrona y asíncrona. Su integración con SQLAlchemy permite mantener
+el mismo modelo de programación asíncrona utilizado por FastAPI y Aiogram.
+
+asyncpg también proporciona acceso asíncrono y es una alternativa válida, pero
+incorporaría un controlador diferente al adaptador oficial de uso general
+seleccionado para el proyecto. El acceso síncrono sería más simple en algunos
+escenarios, aunque requeriría aislar las operaciones bloqueantes para no afectar
+el flujo asíncrono de la aplicación.
+
+### Consecuencias
+
+Los servicios deberán esperar las operaciones de sesión y respetar una sesión
+por unidad de trabajo. No se compartirá una instancia de `AsyncSession` entre
+tareas concurrentes. Los atributos no expirarán automáticamente después del
+commit para evitar cargas implícitas no esperadas en código asíncrono.
+
+La creación del motor no se realizará durante la importación de la aplicación.
+La configuración del ciclo de vida de FastAPI, los modelos, Alembic y la
+comprobación contra una instancia real de PostgreSQL permanecen pendientes.
+`Base.metadata.create_all()` no se utilizará como sustituto de las migraciones.
+
+Las referencias utilizadas son:
+
+- documentación asíncrona de SQLAlchemy:
+  <https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html>;
+- documentación de Psycopg 3:
+  <https://www.psycopg.org/psycopg3/docs/>;
+- integración de Psycopg con SQLAlchemy:
+  <https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg>.
+
+## Elementos pendientes
+
+La dependencia ya está incorporada y la capa de sesiones se verifica sin una
+conexión real. El ciclo de vida de la aplicación, la ejecución contra
+PostgreSQL, los modelos y las migraciones se implementarán en Issues
+posteriores.
+
 ## Decisiones pendientes
 
 Las siguientes decisiones requieren Issues separados:

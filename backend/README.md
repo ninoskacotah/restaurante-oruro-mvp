@@ -70,6 +70,25 @@ Las variables definidas directamente en el sistema tienen prioridad sobre las
 escritas en `.env`. La configuración solo se carga cuando una operación llama a
 `get_settings()`; importar la aplicación no exige secretos ni abre conexiones.
 
+## Acceso a PostgreSQL
+
+La capa `app.db.session` prepara el acceso asíncrono mediante SQLAlchemy 2 y
+Psycopg 3. Proporciona operaciones explícitas para:
+
+- construir el motor desde `DATABASE_URL`;
+- crear la factoría de sesiones;
+- confirmar o revertir una unidad de trabajo;
+- cerrar siempre la sesión;
+- liberar los recursos del motor.
+
+La construcción del motor no abre por sí sola una conexión. En este incremento
+las pruebas verifican la configuración y el ciclo transaccional sin un servidor
+PostgreSQL activo.
+
+Todavía no existen modelos, tablas ni migraciones, y no se utiliza
+`Base.metadata.create_all()`. La conexión contra una base real y la evolución
+del esquema se incorporarán en Issues posteriores.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:
@@ -79,7 +98,7 @@ python -m unittest discover -s tests -v
 ```
 
 Las pruebas confirman que los paquetes pueden importarse, comprueban el endpoint
-de salud y verifican la carga de configuración con valores ficticios. No
+de salud y verifican la configuración y las sesiones con valores ficticios. No
 necesitan iniciar un servidor ni conectarse a PostgreSQL o Telegram.
 
 ## Ejecución local
