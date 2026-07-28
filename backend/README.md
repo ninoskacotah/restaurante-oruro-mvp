@@ -89,6 +89,17 @@ Todavía no existen modelos, tablas ni migraciones, y no se utiliza
 `Base.metadata.create_all()`. La conexión contra una base real y la evolución
 del esquema se incorporarán en Issues posteriores.
 
+## Base declarativa
+
+La capa `app.db.base` expone una sola clase `Base` y metadatos compartidos para
+los futuros modelos. Las convenciones producen nombres previsibles para
+índices, restricciones únicas, restricciones `CHECK`, claves foráneas y claves
+primarias.
+
+Estos metadatos permitirán que Alembic compare los modelos con el esquema en un
+incremento posterior. Actualmente no contienen tablas registradas, no ejecutan
+SQL y no crean el esquema.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:
