@@ -175,9 +175,39 @@ Las credenciales y los tokens se transportarán únicamente mediante HTTPS. Los
 errores y registros de auditoría no incluirán contraseñas, secretos ni tokens
 completos.
 
-Estas reglas corresponden al diseño aprobado y todavía no están implementadas.
-El almacenamiento seguro de la contraseña del administrador se definirá en un
-Issue independiente.
+### Protección de la contraseña
+
+La contraseña administrativa se protegerá mediante Argon2id. Los parámetros
+iniciales serán:
+
+| Parámetro | Valor inicial |
+|---|---|
+| Memoria | 19 MiB (`19456` KiB) |
+| Iteraciones | `2` |
+| Paralelismo | `1` |
+
+La biblioteca generará una sal aleatoria y única para cada contraseña.
+`credencial_hash` conservará la cadena PHC completa, que incluye el algoritmo,
+la versión, los parámetros, la sal y el resultado. No se almacenará la
+contraseña en texto plano ni mediante cifrado reversible.
+
+La verificación utilizará la función de comparación de la biblioteca. Si una
+autenticación válida detecta parámetros obsoletos, se generará un nuevo hash con
+la configuración vigente. Las respuestas no distinguirán entre un usuario
+inexistente y una contraseña incorrecta, y el flujo deberá reducir diferencias
+observables que permitan enumerar cuentas.
+
+No se utilizará un `pepper` en el alcance inicial. Si se incorpora después,
+deberá existir una nueva decisión y el secreto permanecerá fuera de PostgreSQL y
+del repositorio.
+
+Antes del despliegue, los parámetros de Argon2id deberán medirse en el VPS de
+Hetzner. Podrán aumentarse si el servidor mantiene un tiempo de autenticación
+aceptable; esta medición todavía no se ha realizado.
+
+Las contraseñas y los hashes no aparecerán en JWT, logs, respuestas ni mensajes
+de error. Estas reglas corresponden al diseño aprobado y todavía no están
+implementadas.
 
 ## Persistencia
 

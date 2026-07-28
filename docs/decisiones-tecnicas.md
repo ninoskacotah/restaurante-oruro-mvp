@@ -565,8 +565,81 @@ Las referencias utilizadas son:
 - OWASP Secrets Management Cheat Sheet:
   <https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html>.
 
-La implementación de endpoints, la lista de revocación, el panel y la
-protección de contraseñas corresponden a Issues posteriores.
+La implementación de endpoints, la lista de revocación y el panel corresponde a
+Issues posteriores. La protección de contraseñas se desarrolla en la decisión
+DT-015.
+
+## DT-015 — Almacenamiento de contraseñas administrativas
+
+**Estado:** Aprobada.
+
+### Contexto
+
+El administrador se autenticará con una contraseña, pero la base de datos no
+debe conservar un valor que permita recuperarla directamente. Se necesita un
+algoritmo adaptativo para sistemas nuevos y parámetros que puedan revisarse a
+medida que cambien el servidor y las recomendaciones.
+
+### Alternativas consideradas
+
+- Argon2id.
+- scrypt.
+- bcrypt.
+- PBKDF2.
+
+### Decisión
+
+Utilizar Argon2id con los siguientes parámetros iniciales:
+
+- memoria: 19 MiB (`19456` KiB);
+- iteraciones: `2`;
+- paralelismo: `1`.
+
+La biblioteca generará una sal aleatoria y única. `credencial_hash` almacenará
+el resultado completo en formato PHC, incluido el algoritmo, versión,
+parámetros y sal. La contraseña no se almacenará en texto plano ni mediante
+cifrado reversible.
+
+No se incorporará un `pepper` en el alcance inicial. Adoptarlo posteriormente
+requerirá otra decisión y un mecanismo para mantener ese secreto separado de la
+base de datos y del repositorio.
+
+### Justificación
+
+Argon2id es la alternativa principal recomendada por OWASP para aplicaciones
+nuevas y combina resistencia frente a diferentes formas de ataque sobre hashes.
+scrypt es una alternativa válida cuando Argon2id no está disponible. bcrypt se
+mantiene principalmente para sistemas heredados y PBKDF2 resulta relevante
+cuando existe un requisito de compatibilidad FIPS, condición que no se ha
+establecido para este proyecto.
+
+Los parámetros corresponden a un punto de partida publicado, no a una prueba ya
+realizada sobre el VPS.
+
+### Consecuencias
+
+La creación y cambio de una contraseña utilizarán la función de hash de una
+biblioteca compatible. La autenticación utilizará su función de verificación,
+sin comparar manualmente cadenas ni hashes.
+
+Después de una autenticación válida, la aplicación comprobará si la cadena
+necesita actualizarse por cambios de algoritmo o parámetros y, cuando
+corresponda, generará un hash nuevo. Esto permitirá elevar el costo gradualmente
+sin conservar dos contraseñas.
+
+Antes del despliegue se medirá Argon2id en el VPS de Hetzner. Los parámetros
+podrán aumentarse si el tiempo de verificación continúa siendo aceptable. El
+resultado de esa medición deberá documentarse cuando realmente se ejecute.
+
+Los mensajes de error no revelarán si existe el nombre de usuario. Las
+contraseñas y hashes no se incluirán en logs, respuestas, JWT ni datos de
+auditoría.
+
+La referencia utilizada es OWASP Password Storage Cheat Sheet:
+<https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html>.
+
+La dependencia, creación del administrador, endpoints y pruebas de
+autenticación se implementarán en Issues posteriores.
 
 ## Decisiones pendientes
 
