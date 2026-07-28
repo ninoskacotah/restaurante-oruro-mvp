@@ -6,10 +6,9 @@ Este documento se construirá gradualmente. El presente incremento define
 únicamente la arquitectura de componentes prevista para el MVP de Restaurant Las
 Retamas.
 
-Los casos de uso y el modelo entidad-relación con sus cardinalidades se
-incorporarán en Issues posteriores, cuando se aprueben sus respectivos diseños.
-Los componentes descritos aquí todavía no se presentan como implementados o
-desplegados.
+El modelo entidad-relación con sus cardinalidades se incorporará en un Issue
+posterior, cuando se apruebe su diseño. Los componentes y casos de uso descritos
+aquí todavía no se presentan como implementados o desplegados.
 
 ## Principios de la arquitectura
 
@@ -259,11 +258,107 @@ La configuración reproducible se desarrollará en `docs/despliegue.md` y la
 justificación de las decisiones se registrará en
 `docs/decisiones-tecnicas.md`.
 
+## Diagrama de casos de uso
+
+El siguiente diagrama delimita las interacciones previstas entre los tres roles
+del MVP y el sistema de pedidos de Restaurant Las Retamas. Los casos representan
+capacidades requeridas, no funciones ya implementadas.
+
+```mermaid
+flowchart LR
+    Cliente["Cliente"]
+    Repartidor["Repartidor"]
+    Administrador["Administrador"]
+
+    subgraph Sistema["Sistema de pedidos de Restaurant Las Retamas"]
+        C1(["Gestionar datos básicos"])
+        C2(["Consultar menú y disponibilidad"])
+        C3(["Gestionar carrito"])
+        C4(["Confirmar pedido"])
+        C5(["Compartir ubicación de entrega"])
+        C6(["Recibir QR y enviar comprobante"])
+        C7(["Consultar estado del pedido"])
+        C8(["Solicitar cancelación"])
+
+        R1(["Autenticarse en el bot"])
+        R2(["Recibir asignación"])
+        R3(["Confirmar recepción"])
+        R4(["Compartir ubicación en tiempo real"])
+        R5(["Registrar llegada"])
+        R6(["Registrar evidencia de entrega"])
+
+        A1(["Autenticarse en el panel"])
+        A2(["Gestionar platos y menú"])
+        A3(["Controlar disponibilidad y stock"])
+        A4(["Revisar pedidos"])
+        A5(["Validar pagos"])
+        A6(["Asignar o reasignar repartidor"])
+        A7(["Supervisar entrega en el mapa"])
+        A8(["Consultar clientes e historial"])
+        A9(["Consultar reportes básicos"])
+    end
+
+    Cliente --- C1
+    Cliente --- C2
+    Cliente --- C3
+    Cliente --- C4
+    Cliente --- C5
+    Cliente --- C6
+    Cliente --- C7
+    Cliente --- C8
+
+    Repartidor --- R1
+    Repartidor --- R2
+    Repartidor --- R3
+    Repartidor --- R4
+    Repartidor --- R5
+    Repartidor --- R6
+
+    Administrador --- A1
+    Administrador --- A2
+    Administrador --- A3
+    Administrador --- A4
+    Administrador --- A5
+    Administrador --- A6
+    Administrador --- A7
+    Administrador --- A8
+    Administrador --- A9
+```
+
+### Interpretación por actor
+
+El cliente interactuará con el bot para mantener sus datos básicos, consultar
+la oferta disponible y preparar el carrito. Al confirmar un pedido, compartirá
+la ubicación de entrega, recibirá el QR, remitirá el comprobante y podrá
+consultar el avance. La solicitud de cancelación estará sujeta a las
+transiciones permitidas en `docs/estados-pedido.md`.
+
+El repartidor utilizará el bot después de autenticarse. Solo recibirá pedidos
+asignados por el administrador; deberá confirmar su recepción, compartir
+`live location` durante el trayecto, registrar la llegada y aportar una
+evidencia válida para completar la entrega.
+
+El administrador accederá al panel protegido para mantener platos, menú,
+disponibilidad y stock; revisar pedidos y comprobantes; validar pagos; asignar o
+reasignar repartidores; supervisar las ubicaciones; y consultar información de
+clientes, historial y reportes básicos.
+
+### Relaciones entre los casos
+
+Aunque el diagrama agrupa las interacciones por actor, los tres flujos comparten
+la lógica central. La confirmación manual del pago habilita la preparación y
+posterior asignación; la asignación vincula al repartidor con el pedido; y los
+eventos de trayecto, llegada y entrega actualizan el estado que consulta el
+cliente y supervisa el administrador.
+
+Los permisos, validaciones y cambios de estado se aplicarán en la API conforme
+a la máquina común definida en `docs/estados-pedido.md`. El orden conversacional
+detallado permanece documentado en `docs/flujo-conversacional.md`.
+
 ## Elementos pendientes del diseño
 
 Permanecen pendientes para Issues posteriores:
 
-- diagrama de casos de uso;
 - modelo entidad-relación;
 - tablas y cardinalidades;
 - endpoints concretos;
