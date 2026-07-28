@@ -1,7 +1,22 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "restaurant-las-retamas-backend"
 version = "0.1.0"
 description = "Backend del MVP de pedidos de Restaurant Las Retamas"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
-dependencies = []
+dependencies = [
+    "fastapi>=0.139.2,<0.140",
+    "uvicorn>=0.51.0,<0.52",
+]
+
+[project.optional-dependencies]
+test = [
+    "httpx>=0.28.1,<0.29",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*"]

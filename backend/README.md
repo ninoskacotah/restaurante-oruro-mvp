@@ -1,7 +1,8 @@
 # Backend de Restaurant Las Retamas
 
-Esta carpeta contiene la estructura inicial del backend del MVP. En este
-incremento no se incluyen frameworks, conexiones externas ni lógica funcional.
+Esta carpeta contiene la aplicación FastAPI inicial del backend del MVP. Incluye
+un endpoint técnico de salud, pero todavía no incorpora conexiones externas ni
+lógica funcional del restaurante.
 
 ## Requisito
 
@@ -33,7 +34,11 @@ En Linux o macOS, activarlo con:
 source .venv/bin/activate
 ```
 
-Este incremento no requiere instalar dependencias externas.
+Instalar el proyecto junto con las dependencias de prueba:
+
+```bash
+python -m pip install -e ".[test]"
+```
 
 ## Verificación
 
@@ -44,4 +49,27 @@ python -m unittest discover -s tests -v
 ```
 
 La prueba confirma que el paquete principal y sus subdivisiones pueden
-importarse. Todavía no inicia un servidor ni se conecta a PostgreSQL.
+importarse y comprueba la respuesta del endpoint de salud. No necesita iniciar
+un servidor ni conectarse a PostgreSQL.
+
+## Ejecución local
+
+Iniciar el servidor de desarrollo desde `backend/`:
+
+```bash
+python -m uvicorn app.main:app --reload
+```
+
+El endpoint técnico queda disponible en:
+
+```text
+GET http://127.0.0.1:8000/api/health
+```
+
+Su respuesta es:
+
+```json
+{"status": "ok"}
+```
+
+El servidor de recarga es únicamente para desarrollo local.
