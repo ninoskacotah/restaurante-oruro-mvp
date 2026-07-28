@@ -80,7 +80,9 @@ posteriormente.
 
 - Vue 3;
 - JavaScript;
-- Vite.
+- Vite;
+- Leaflet;
+- OpenStreetMap como fuente cartográfica inicial.
 
 ### Responsabilidades
 
@@ -187,7 +189,7 @@ flowchart LR
         API["API REST<br/>Python 3.12 + FastAPI"]
         ORM["Persistencia<br/>SQLAlchemy"]
         DB[("PostgreSQL")]
-        Panel["Panel web<br/>Vue 3 + JavaScript + Vite"]
+        Panel["Panel web<br/>Vue 3 + JavaScript + Vite + Leaflet"]
         Archivos["Directorio persistente de fotografías<br/>fuera del acceso público"]
 
         Bot --> API
@@ -250,8 +252,49 @@ Live location de Telegram
 → mapa administrativo
 ```
 
-El proveedor concreto del mapa todavía no está seleccionado y deberá evaluarse
-antes de implementar esta visualización.
+La visualización utilizará Leaflet y una capa inicial de teselas de
+OpenStreetMap. La URL de las teselas permanecerá configurable para que la fuente
+pueda sustituirse sin reescribir el componente.
+
+## Mapa administrativo
+
+El mapa representará únicamente el seguimiento requerido para el MVP. No
+proporcionará navegación paso a paso, cálculo de rutas ni geocodificación.
+
+La visualización prevista incluirá:
+
+- un marcador para el destino registrado en el pedido;
+- un marcador diferenciado para la última posición válida del repartidor;
+- una línea formada por las ubicaciones de la asignación activa, ordenadas por
+  su fecha de registro;
+- la fecha y hora de la última actualización recibida;
+- una advertencia cuando la ubicación supere el intervalo que se defina como
+  desactualizado.
+
+El panel obtendrá el destino y el rastro mediante la API. No consultará
+PostgreSQL directamente ni enviará datos personales o ubicaciones a un servicio
+de geocodificación.
+
+### Fuente cartográfica y condiciones de uso
+
+OpenStreetMap será la fuente cartográfica inicial para las teselas mostradas por
+Leaflet. La interfaz conservará visible la atribución a sus colaboradores y no
+ocultará ni reemplazará el control correspondiente.
+
+El mapa solicitará solamente las teselas requeridas por la vista interactiva
+del usuario. No ofrecerá descarga masiva, precarga de áreas ni uso sin conexión,
+y respetará las directivas de caché recibidas. El servicio público de teselas no
+ofrece garantía de disponibilidad; por ello, su URL no se incorporará de forma
+inamovible al componente y podrá cambiarse mediante configuración.
+
+Las condiciones vigentes deberán revisarse antes del despliegue:
+
+- referencia de Leaflet: <https://leafletjs.com/reference>;
+- política de teselas de OpenStreetMap:
+  <https://operations.osmfoundation.org/policies/tiles/>.
+
+Esta sección define el comportamiento esperado, pero Leaflet todavía no está
+instalado y el componente del mapa no está implementado.
 
 ## Entorno objetivo
 
@@ -599,7 +642,6 @@ Permanecen pendientes para Issues posteriores:
 
 - endpoints concretos;
 - estructura del código;
-- proveedor del mapa;
 - reglas detalladas de JWT;
 - arquitectura física del despliegue.
 

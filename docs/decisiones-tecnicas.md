@@ -432,13 +432,72 @@ almacenamiento de objetos mediante una nueva decisión.
 El directorio, los límites concretos, las operaciones de carga y consulta y la
 automatización de los respaldos todavía no están implementados.
 
+## DT-013 — Tecnología del mapa administrativo
+
+**Estado:** Aprobada.
+
+### Contexto
+
+El panel debe representar el destino, la última posición del repartidor y el
+trayecto cronológico de una entrega. El alcance requiere un mapa interactivo 2D,
+pero no navegación, cálculo de rutas, geocodificación ni visualizaciones
+vectoriales avanzadas.
+
+### Alternativas consideradas
+
+- Leaflet con OpenStreetMap como fuente cartográfica inicial.
+- MapLibre GL JS.
+- Google Maps.
+- Mapbox.
+
+### Decisión
+
+Utilizar Leaflet en el panel Vue 3 y OpenStreetMap como fuente cartográfica
+inicial. La URL del proveedor de teselas permanecerá configurable.
+
+### Justificación
+
+Leaflet proporciona mapas, marcadores, líneas, capas y controles suficientes
+para representar el seguimiento 2D del MVP. MapLibre GL JS permite trabajar con
+teselas vectoriales y estilos más avanzados, capacidades que no son necesarias
+para el alcance vigente.
+
+Google Maps y Mapbox también permiten construir la visualización, pero añaden la
+gestión de cuentas, credenciales y condiciones de servicio específicas. La
+combinación de Leaflet y OpenStreetMap permite comenzar con una solución acorde
+al diseño simple, siempre que se respeten la atribución y la política del
+servicio de teselas.
+
+### Consecuencias
+
+El mapa mostrará marcadores diferenciados para el destino y la posición actual,
+una línea formada por las ubicaciones ordenadas de la asignación activa y la
+fecha de la última actualización. También deberá advertir cuando el último punto
+supere el intervalo que posteriormente se defina como desactualizado.
+
+La atribución a OpenStreetMap permanecerá visible. No se implementarán descarga
+masiva, precarga de áreas ni uso sin conexión de sus teselas públicas, y se
+respetarán las directivas de caché. El servicio público funciona sin garantía de
+disponibilidad, de modo que la aplicación deberá permitir cambiar la URL del
+proveedor mediante configuración.
+
+Las referencias consultadas para esta decisión son:
+
+- documentación de Leaflet: <https://leafletjs.com/reference>;
+- documentación de MapLibre GL JS:
+  <https://maplibre.org/maplibre-gl-js/docs>;
+- política de teselas de OpenStreetMap:
+  <https://operations.osmfoundation.org/policies/tiles/>.
+
+La instalación de Leaflet, el componente Vue, la consulta de ubicaciones y la
+actualización de la vista se implementarán en Issues posteriores.
+
 ## Decisiones pendientes
 
 Las siguientes decisiones requieren Issues separados:
 
 | Tema | Motivo para mantenerlo pendiente |
 |---|---|
-| Proveedor o biblioteca del mapa | Debe comprobarse su integración con Vue y los datos de ubicación |
 | Reglas detalladas de JWT | Deben definirse firma, duración, almacenamiento, renovación y revocación |
 | Migraciones de base de datos | Debe seleccionarse y preparar el mecanismo junto con la estructura del backend |
 | Arquitectura física del VPS | Deben definirse procesos, red, proxy, dominio, HTTPS y respaldos |
