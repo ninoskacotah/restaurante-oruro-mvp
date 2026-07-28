@@ -1,0 +1,7 @@
+[project]
+name = "restaurant-las-retamas-backend"
+version = "0.1.0"
+description = "Backend del MVP de pedidos de Restaurant Las Retamas"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = []
