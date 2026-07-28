@@ -375,13 +375,69 @@ sistema todavía no se considera desplegado y quedan pendientes la preparación
 del servidor, procesos, proxy, dominio, certificados, variables de entorno,
 respaldos y procedimiento reproducible.
 
+## DT-012 — Almacenamiento de comprobantes y evidencias
+
+**Estado:** Aprobada.
+
+### Contexto
+
+El cliente envía una fotografía del comprobante de pago y el repartidor puede
+usar una fotografía como evidencia de entrega. Estos archivos deben persistir,
+quedar asociados con el registro correcto y poder consultarse desde funciones
+autorizadas del panel.
+
+### Alternativas consideradas
+
+- Archivos persistentes en el sistema de archivos del VPS de Hetzner.
+- Identificadores `file_id` de Telegram como referencia permanente.
+- Almacenamiento externo de objetos.
+- Combinación de una referencia de Telegram y una copia persistente propia.
+
+### Decisión
+
+Descargar las fotografías recibidas mediante Telegram y conservarlas en un
+directorio persistente y configurable del VPS. PostgreSQL almacenará los
+metadatos y una ruta relativa, no el contenido binario.
+
+### Justificación
+
+El directorio persistente aprovecha el VPS ya previsto y evita añadir para el
+MVP otro servicio con configuración, credenciales y costos propios. Una copia
+controlada por la aplicación evita usar Telegram como único repositorio. El
+almacenamiento de objetos ofrece mejores opciones de crecimiento y
+disponibilidad, pero no resulta necesario para el volumen aún no determinado de
+este MVP.
+
+La alternativa combinada conservaría dos referencias y exigiría definir cuál es
+la fuente principal. Para el alcance inicial se prefiere una sola copia
+persistente administrada por la aplicación.
+
+### Consecuencias
+
+Los archivos se guardarán fuera de los recursos públicos del panel. Sus nombres
+serán generados por el sistema y las rutas almacenadas serán relativas. Antes de
+aceptarlos se validarán el formato y un límite de tamaño configurable. El acceso
+deberá pasar por operaciones autenticadas y autorizadas.
+
+La base de datos conservará, según el tipo de registro, el pedido o la
+asignación relacionados, la ruta, el nombre generado, el tipo MIME, el tamaño y
+la fecha. La eliminación deberá coordinar el registro y el archivo para evitar
+referencias rotas o archivos sin relación.
+
+Esta estrategia depende del disco de un solo VPS. Los respaldos deberán incluir
+PostgreSQL y el directorio persistente de forma coordinada. Si el volumen, la
+disponibilidad o la distribución del sistema aumentan, se evaluará el cambio a
+almacenamiento de objetos mediante una nueva decisión.
+
+El directorio, los límites concretos, las operaciones de carga y consulta y la
+automatización de los respaldos todavía no están implementados.
+
 ## Decisiones pendientes
 
 Las siguientes decisiones requieren Issues separados:
 
 | Tema | Motivo para mantenerlo pendiente |
 |---|---|
-| Almacenamiento de comprobantes y evidencias | Debe evaluarse persistencia, acceso, respaldo y relación con Telegram |
 | Proveedor o biblioteca del mapa | Debe comprobarse su integración con Vue y los datos de ubicación |
 | Reglas detalladas de JWT | Deben definirse firma, duración, almacenamiento, renovación y revocación |
 | Migraciones de base de datos | Debe seleccionarse y preparar el mecanismo junto con la estructura del backend |
