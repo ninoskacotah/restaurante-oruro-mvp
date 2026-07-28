@@ -305,3 +305,181 @@ dejar constancia de que el pedido fue recibido por el cliente.**
 Las notificaciones al cliente se producen en momentos diferentes: cuando el
 pedido inicia el trayecto, cuando el repartidor registra su llegada y cuando
 confirma la entrega.
+
+## Historias de usuario del administrador
+
+### HU-A01 — Autenticación y acceso protegido
+
+**Como administrador, quiero autenticarme en el panel web, para acceder de forma
+segura a las funciones administrativas.**
+
+#### Criterios de aceptación
+
+- El panel solicita credenciales antes de permitir el acceso.
+- Las credenciales se almacenan de forma segura y no aparecen escritas
+  directamente en el código.
+- Una combinación inválida no inicia una sesión.
+- Todas las rutas internas están protegidas frente al acceso directo por URL.
+- Una persona no autenticada es redirigida al acceso o recibe una respuesta de
+  autorización denegada.
+- La sesión permite identificar al administrador autenticado.
+- El cierre de sesión invalida el acceso administrativo.
+- Un token o sesión inválida, alterada o vencida no permite acceder a rutas
+  protegidas.
+
+### HU-A02 — Gestión de platos
+
+**Como administrador, quiero crear, consultar, editar y eliminar platos, para
+mantener actualizado el catálogo del restaurante.**
+
+#### Criterios de aceptación
+
+- El administrador puede registrar un plato.
+- El sistema valida los datos obligatorios antes de guardar.
+- Los platos registrados pueden consultarse desde el panel.
+- El administrador puede modificar los datos de un plato.
+- Puede eliminar un plato cuando las reglas de integridad lo permitan.
+- Las operaciones se reflejan en la base de datos.
+- Una operación inválida muestra un mensaje y no guarda información incompleta.
+- Los cambios del catálogo se reflejan en las consultas posteriores del bot.
+
+### HU-A03 — Programación del menú y control de stock
+
+**Como administrador, quiero programar platos por fecha y controlar su
+disponibilidad, para definir la oferta que el bot presenta a los clientes.**
+
+#### Criterios de aceptación
+
+- El administrador puede asociar platos a una fecha.
+- Puede definir el precio aplicable.
+- Puede establecer y modificar el stock.
+- Puede habilitar o deshabilitar la disponibilidad.
+- El bot solo muestra platos habilitados para la fecha actual y con stock mayor
+  a cero.
+- Un cambio realizado en el panel se refleja en una nueva consulta del menú.
+- El stock se descuenta cuando el pedido alcanza el evento de confirmación
+  definido para el sistema.
+- La actualización de stock evita resultados negativos.
+- Un plato agotado deja de aparecer en el bot sin intervención adicional.
+- La validación final impide confirmar cantidades superiores al stock
+  disponible.
+
+El evento exacto que confirma el pedido deberá quedar establecido posteriormente
+en la máquina de estados, para no anticipar una transición antes de diseñarla.
+
+### HU-A04 — Supervisión del tablero de pedidos
+
+**Como administrador, quiero consultar y gestionar el tablero de pedidos, para
+conocer y controlar la situación de cada pedido.**
+
+#### Criterios de aceptación
+
+- El tablero muestra los pedidos registrados.
+- Cada pedido presenta su identificador, cliente, total y estado.
+- El administrador puede abrir el detalle de un pedido.
+- El detalle muestra platos, cantidades, ubicación y datos asociados.
+- El administrador puede realizar los cambios manuales de estado permitidos.
+- Solo se aceptan transiciones válidas según la máquina de estados.
+- Cada cambio conserva una marca temporal.
+- Los cambios se reflejan en la base de datos.
+- El cliente recibe la notificación correspondiente cuando cambia un estado
+  notificable.
+- Una acción repetida no genera transiciones o notificaciones duplicadas.
+
+### HU-A05 — Verificación manual del pago
+
+**Como administrador, quiero revisar el comprobante y confirmar manualmente el
+pago, para validar que el pedido puede continuar.**
+
+#### Criterios de aceptación
+
+- El pedido permite visualizar la fotografía del comprobante enviado por el
+  cliente.
+- El comprobante corresponde al pedido consultado.
+- El envío de la fotografía no marca automáticamente el pedido como pagado.
+- Solo un administrador autenticado puede confirmar el pago.
+- La confirmación actualiza el estado del pago.
+- La acción registra fecha y hora.
+- El bot notifica al cliente cuando el pago es confirmado.
+- Confirmar repetidamente el mismo pago no duplica efectos.
+- Un pedido sin comprobante no puede confirmarse mediante el flujo normal.
+
+### HU-A06 — Asignación y reasignación del repartidor
+
+**Como administrador, quiero asignar o reasignar un repartidor a un pedido, para
+determinar quién realizará la entrega.**
+
+#### Criterios de aceptación
+
+- El pedido presenta un selector con los repartidores registrados.
+- La asignación se realiza directamente desde el panel.
+- No existe una cola ni competencia entre repartidores.
+- Solo puede asignarse uno de los repartidores habilitados.
+- El repartidor seleccionado recibe inmediatamente la información completa del
+  pedido.
+- La asignación queda almacenada con fecha y hora.
+- El panel muestra si el repartidor confirmó la recepción.
+- El administrador puede reasignar el pedido cuando corresponda.
+- El repartidor anterior deja de tener el pedido como asignación activa.
+- El nuevo repartidor recibe la notificación completa.
+- La reasignación conserva el historial y no mezcla los rastros de ubicación.
+
+### HU-A07 — Seguimiento de la entrega en el mapa
+
+**Como administrador, quiero visualizar en un mapa al repartidor y el destino,
+para supervisar el recorrido y reconocer su llegada.**
+
+#### Criterios de aceptación
+
+- El mapa muestra la ubicación de entrega del cliente.
+- Muestra la última posición recibida del repartidor.
+- La posición se actualiza a partir de la `live location` de Telegram.
+- El panel muestra la fecha y hora de la última actualización.
+- El recorrido conserva los puntos históricos con sus marcas temporales.
+- El panel permite reconocer cuando las actualizaciones se interrumpen.
+- La pérdida de señal no elimina el último punto válido.
+- La llegada se muestra como un evento distinto de la entrega.
+- Las ubicaciones pertenecen al repartidor asignado y al pedido correcto.
+- Después de una reasignación no se mezclan recorridos de distintos
+  repartidores.
+
+### HU-A08 — Consulta de clientes e historial
+
+**Como administrador, quiero consultar la ficha y el historial de cada cliente,
+para conocer su relación de pedidos con el sistema.**
+
+#### Criterios de aceptación
+
+- El administrador puede localizar y abrir la ficha de un cliente registrado.
+- La ficha presenta los datos disponibles del cliente sin exponer información
+  ajena al propósito del sistema.
+- Muestra el historial de pedidos asociado al cliente.
+- Cada registro permite consultar fecha, total y estado final.
+- La frecuencia se calcula a partir de los pedidos reales almacenados.
+- La cifra de frecuencia coincide con los pedidos considerados por la regla
+  definida.
+- Un cliente no muestra pedidos pertenecientes a otro perfil.
+- Solo usuarios autenticados pueden consultar estas fichas.
+
+La regla exacta para considerar pedidos cancelados dentro de la frecuencia
+deberá definirse antes de implementar el reporte.
+
+### HU-A09 — Consulta de reportes operativos
+
+**Como administrador, quiero consultar reportes básicos de pedidos y entregas,
+para revisar los resultados registrados por el sistema.**
+
+#### Criterios de aceptación
+
+- El panel muestra las ventas del día.
+- El cálculo utiliza pedidos y pagos reales de la base de datos.
+- El panel muestra los platos más pedidos.
+- El cálculo considera las cantidades registradas en los detalles de pedido.
+- El panel muestra el tiempo promedio de entrega.
+- El promedio utiliza marcas temporales reales del inicio y final de las
+  entregas consideradas.
+- Cada reporte indica el periodo o criterio aplicado.
+- Las cifras se actualizan cuando cambian los datos relevantes.
+- Los resultados pueden contrastarse con los pedidos almacenados.
+- Los pedidos cancelados o no pagados se incluyen o excluyen mediante reglas que
+  deberán quedar explícitamente definidas antes de implementar los cálculos.
