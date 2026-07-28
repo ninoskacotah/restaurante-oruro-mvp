@@ -492,13 +492,88 @@ Las referencias consultadas para esta decisión son:
 La instalación de Leaflet, el componente Vue, la consulta de ubicaciones y la
 actualización de la vista se implementarán en Issues posteriores.
 
+## DT-014 — Seguridad de autenticación JWT
+
+**Estado:** Aprobada.
+
+### Contexto
+
+El panel necesita autenticar al administrador ante una sola API FastAPI. La
+decisión inicial de utilizar JWT debe completarse con reglas de firma, duración,
+claims, almacenamiento, validación y cierre de sesión.
+
+### Alternativas consideradas
+
+- `HS256`, con un secreto compartido por el único servicio que emite y valida.
+- `RS256`, con una clave privada de firma y una clave pública de verificación.
+- Token de acceso con refresh token.
+- Token de acceso de corta duración sin refresh token.
+- Persistencia del token en almacenamiento web.
+- Conservación del token únicamente en memoria.
+
+### Decisión
+
+Utilizar tokens de acceso firmados exclusivamente con `HS256`, con una duración
+de 15 minutos y una tolerancia temporal máxima de 30 segundos. El secreto tendrá
+al menos 256 bits aleatorios, se obtendrá desde el entorno y nunca se almacenará
+en Git.
+
+El MVP no utilizará refresh token. El panel conservará el token únicamente en
+memoria y lo enviará mediante `Authorization: Bearer`. Al expirar el token,
+recargar la página o cerrar el navegador, el administrador deberá autenticarse
+de nuevo.
+
+Las claims obligatorias serán `sub`, `role`, `iss`, `aud`, `iat`, `nbf`, `exp`
+y `jti`. `role` tendrá el valor `admin`, `iss` será
+`restaurant-las-retamas-api` y `aud` será
+`restaurant-las-retamas-panel`.
+
+### Justificación
+
+`HS256` resulta proporcional a una arquitectura donde una sola API controla la
+emisión y validación. `RS256` sería apropiado si varios servicios necesitaran
+verificar tokens sin compartir la capacidad de firmarlos, situación que no
+forma parte del MVP.
+
+La duración corta limita el tiempo de uso de un token comprometido. Omitir el
+refresh token evita incorporar almacenamiento, rotación y detección de
+reutilización antes de que exista esa necesidad. Mantener el token en memoria
+evita dejarlo persistente en `localStorage` o `sessionStorage`, a cambio de que
+una recarga requiera iniciar sesión nuevamente.
+
+### Consecuencias
+
+La API fijará `HS256` en su configuración y no confiará en el encabezado del JWT
+para elegir el algoritmo. Rechazará `alg: none` y validará firma, emisor,
+audiencia, vigencia, identidad, rol y revocación en cada endpoint
+administrativo. También comprobará que el administrador continúe activo.
+
+El cierre de sesión eliminará el token de la memoria del panel y registrará su
+`jti` en una lista de revocación persistente hasta `exp`. Se conservarán el
+identificador, el administrador, la fecha de revocación y la expiración, pero no
+el token completo.
+
+Las credenciales y tokens solo circularán mediante HTTPS. Las respuestas de
+error serán genéricas y los registros no expondrán contraseñas, secretos ni
+tokens completos. El JWT no contendrá información sensible innecesaria.
+
+Las referencias utilizadas son:
+
+- RFC 8725: <https://datatracker.ietf.org/doc/rfc8725/>;
+- OWASP REST Security Cheat Sheet:
+  <https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html>;
+- OWASP Secrets Management Cheat Sheet:
+  <https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html>.
+
+La implementación de endpoints, la lista de revocación, el panel y la
+protección de contraseñas corresponden a Issues posteriores.
+
 ## Decisiones pendientes
 
 Las siguientes decisiones requieren Issues separados:
 
 | Tema | Motivo para mantenerlo pendiente |
 |---|---|
-| Reglas detalladas de JWT | Deben definirse firma, duración, almacenamiento, renovación y revocación |
 | Migraciones de base de datos | Debe seleccionarse y preparar el mecanismo junto con la estructura del backend |
 | Arquitectura física del VPS | Deben definirse procesos, red, proxy, dominio, HTTPS y respaldos |
 
