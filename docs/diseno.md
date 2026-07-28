@@ -107,13 +107,77 @@ panel. El flujo general será:
 
 1. el administrador envía sus credenciales a la API;
 2. la API valida las credenciales almacenadas de forma segura;
-3. si son correctas, entrega un token firmado;
-4. el panel incluye el token en las solicitudes protegidas;
-5. la API rechaza tokens inválidos o vencidos.
+3. si son correctas, entrega un token de acceso firmado con `HS256`;
+4. el panel conserva el token únicamente en memoria;
+5. el panel lo envía como `Authorization: Bearer <token>`;
+6. la API valida el token y la autorización en cada operación protegida;
+7. al cerrar sesión, la API registra su `jti` como revocado hasta el
+   vencimiento.
 
-Este incremento no define todavía la duración, renovación o revocación de los
-tokens. Esas reglas deberán decidirse y documentarse antes de implementar la
-autenticación.
+### Emisión del token
+
+El token de acceso tendrá una duración de 15 minutos y una tolerancia temporal
+máxima de 30 segundos durante la validación. El MVP no emitirá refresh tokens:
+cuando el token expire o se pierda al recargar la página, el administrador
+deberá autenticarse nuevamente.
+
+El algoritmo permitido será únicamente `HS256`. El secreto tendrá al menos 256
+bits generados de forma aleatoria, se obtendrá mediante configuración del
+entorno y no se incluirá en el repositorio. La API no elegirá el algoritmo a
+partir del encabezado recibido y rechazará tokens sin firma o con
+`alg: none`.
+
+Las claims obligatorias serán:
+
+| Claim | Contenido previsto |
+|---|---|
+| `sub` | Identificador del administrador |
+| `role` | Valor fijo `admin` |
+| `iss` | Valor fijo `restaurant-las-retamas-api` |
+| `aud` | Valor fijo `restaurant-las-retamas-panel` |
+| `iat` | Momento de emisión |
+| `nbf` | Momento desde el cual el token es válido |
+| `exp` | Momento de vencimiento |
+| `jti` | Identificador único del token |
+
+El token no incluirá contraseñas, comprobantes, ubicaciones ni otros datos
+sensibles innecesarios.
+
+### Validación y autorización
+
+En cada endpoint administrativo, la API deberá:
+
+1. comprobar que el esquema recibido sea `Bearer`;
+2. aceptar exclusivamente `HS256`;
+3. verificar la firma con el secreto configurado;
+4. validar `iss`, `aud`, `iat`, `nbf` y `exp`;
+5. comprobar que `sub`, `role` y `jti` estén presentes;
+6. confirmar que el rol sea `admin` y que el administrador continúe activo;
+7. rechazar el token si su `jti` figura como revocado;
+8. aplicar la autorización propia de la operación.
+
+Una credencial ausente, inválida, vencida o revocada producirá una respuesta
+genérica de autenticación. Una identidad válida sin permiso suficiente
+producirá una respuesta de autorización, sin revelar detalles internos.
+
+### Almacenamiento y cierre de sesión
+
+El panel mantendrá el token solamente en memoria y no utilizará `localStorage`
+ni `sessionStorage`. Esta medida reduce la persistencia del token en el
+navegador, pero implica perder la sesión al recargar o cerrar la página.
+
+El cierre de sesión eliminará la copia en memoria y enviará el token vigente a
+la operación protegida de cierre. La API registrará su `jti`, el administrador,
+la fecha de revocación y la expiración. La entrada podrá eliminarse después de
+`exp`; nunca se almacenará el JWT completo.
+
+Las credenciales y los tokens se transportarán únicamente mediante HTTPS. Los
+errores y registros de auditoría no incluirán contraseñas, secretos ni tokens
+completos.
+
+Estas reglas corresponden al diseño aprobado y todavía no están implementadas.
+El almacenamiento seguro de la contraseña del administrador se definirá en un
+Issue independiente.
 
 ## Persistencia
 
@@ -420,6 +484,7 @@ erDiagram
     PLATO ||--o{ DETALLE_PEDIDO : referencia
     PEDIDO ||--o{ COMPROBANTE_PAGO : recibe
     ADMINISTRADOR o|--o{ COMPROBANTE_PAGO : revisa
+    ADMINISTRADOR ||--o{ TOKEN_REVOCADO : invalida
     PEDIDO ||--o{ ASIGNACION : conserva
     REPARTIDOR ||--o{ ASIGNACION : recibe
     ASIGNACION ||--o{ UBICACION_TRAYECTO : registra
@@ -452,6 +517,14 @@ erDiagram
         string credencial_hash
         boolean activo
         datetime fecha_registro
+    }
+
+    TOKEN_REVOCADO {
+        int id PK
+        int administrador_id FK
+        string jti UK
+        datetime fecha_revocacion
+        datetime fecha_expiracion
     }
 
     PLATO {
@@ -635,6 +708,8 @@ cuando cambia `estado_actual`.
   vigente según las reglas del negocio.
 - Los estados almacenados deben pertenecer al conjunto definido en la máquina
   de estados compartida.
+- Cada `jti` revocado debe ser único y conservarse hasta el vencimiento del
+  token correspondiente.
 
 ## Elementos pendientes del diseño
 
@@ -642,7 +717,6 @@ Permanecen pendientes para Issues posteriores:
 
 - endpoints concretos;
 - estructura del código;
-- reglas detalladas de JWT;
 - arquitectura física del despliegue.
 
 Estos elementos deberán ser consistentes con la implementación que finalmente
