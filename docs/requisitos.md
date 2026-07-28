@@ -160,3 +160,148 @@ para continuar el pedido sin errores ni duplicaciones.**
 - Repetir la confirmación no crea pedidos duplicados.
 - El cliente recibe una respuesta coherente para continuar, cancelar o
   reiniciar.
+
+## Historias de usuario del repartidor
+
+### HU-R01 — Autenticación del repartidor
+
+**Como repartidor, quiero autenticarme en el bot de Telegram, para acceder
+únicamente a las funciones correspondientes a mi rol.**
+
+#### Criterios de aceptación
+
+- El bot distingue al repartidor del cliente.
+- El repartidor debe autenticarse antes de consultar asignaciones.
+- La autenticación utiliza un mecanismo permitido: código, registro previo
+  desde el panel o lista blanca.
+- Un usuario no autorizado no puede acceder a pedidos ni datos de clientes.
+- Los comandos disponibles se presentan según el rol autenticado.
+- Una autenticación inválida recibe una respuesta comprensible y no inicia una
+  sesión de repartidor.
+- La identidad autenticada queda vinculada al repartidor registrado.
+
+### HU-R02 — Recepción de un pedido asignado
+
+**Como repartidor, quiero recibir la información completa de un pedido que me
+fue asignado, para preparar y realizar la entrega correctamente.**
+
+#### Criterios de aceptación
+
+- La asignación la realiza el administrador desde el panel.
+- No existe una cola ni competencia entre repartidores.
+- Solo el repartidor seleccionado recibe la asignación.
+- La notificación incluye el número del pedido.
+- Muestra los platos y cantidades.
+- Muestra el importe total y el estado del pago.
+- Muestra la dirección y referencia de entrega.
+- Incluye el destino como objeto `Location` de Telegram.
+- Muestra el nombre y contacto del cliente.
+- La información coincide con el pedido registrado en la base de datos.
+
+### HU-R03 — Acuse de recibo de la asignación
+
+**Como repartidor, quiero confirmar que recibí una asignación, para informar al
+administrador que conozco el pedido que debo entregar.**
+
+#### Criterios de aceptación
+
+- La notificación incluye un botón de acuse de recibo.
+- Solo el repartidor asignado puede confirmar la recepción.
+- El acuse queda asociado al pedido y al repartidor.
+- Se registra la fecha y hora de la confirmación.
+- El resultado se refleja en el panel administrativo.
+- Pulsar repetidamente el botón no genera varios acuses.
+- Un repartidor no puede acusar recibo de un pedido que ya no le pertenece.
+
+### HU-R04 — Reasignación consistente del pedido
+
+**Como repartidor, quiero que mis pedidos asignados se actualicen cuando exista
+una reasignación, para trabajar únicamente con las entregas que continúan bajo
+mi responsabilidad.**
+
+#### Criterios de aceptación
+
+- La reasignación se realiza desde el panel administrativo.
+- El repartidor anterior deja de ver el pedido como una asignación activa.
+- El nuevo repartidor recibe toda la información del pedido.
+- El repartidor anterior no puede registrar nuevos eventos sobre el pedido
+  reasignado.
+- El nuevo repartidor debe realizar su propio acuse de recibo.
+- El historial conserva quién estuvo asignado y cuándo ocurrió la reasignación.
+- Las ubicaciones de ambos repartidores no se mezclan en un mismo rastro.
+- La reasignación no duplica el pedido.
+
+### HU-R05 — Seguimiento mediante ubicación en tiempo real
+
+**Como repartidor, quiero compartir mi ubicación en tiempo real durante el
+trayecto, para que el administrador pueda seguir el avance de la entrega.**
+
+#### Criterios de aceptación
+
+- El seguimiento utiliza `live location` de Telegram.
+- Una ubicación estática aislada no se considera seguimiento en tiempo real.
+- Solo se aceptan actualizaciones del repartidor actualmente asignado.
+- Cada actualización almacena latitud, longitud y marca temporal.
+- Las ubicaciones quedan vinculadas al pedido y al repartidor correcto.
+- El panel muestra la posición del repartidor y el destino.
+- El rastro conserva el orden cronológico de las actualizaciones.
+- El intervalo de actualización deberá quedar definido antes de implementar el
+  seguimiento.
+- Finalizada la entrega, las nuevas ubicaciones no se agregan al trayecto
+  cerrado.
+
+### HU-R06 — Manejo de pérdida de señal
+
+**Como repartidor, quiero que el sistema gestione una interrupción de mi
+ubicación en tiempo real, para continuar la entrega sin perder el rastro ya
+registrado.**
+
+#### Criterios de aceptación
+
+- Las ubicaciones recibidas antes de la interrupción permanecen almacenadas.
+- La falta de nuevas actualizaciones no elimina ni sustituye el último punto
+  válido.
+- El panel permite reconocer que la ubicación dejó de actualizarse.
+- Se conserva la fecha y hora de la última ubicación recibida.
+- Cuando se recupera la señal, las nuevas actualizaciones continúan asociadas al
+  mismo pedido y repartidor.
+- La recuperación no duplica puntos ya procesados.
+- Una pérdida de señal no marca automáticamente la llegada o la entrega.
+
+### HU-R07 — Registro de llegada al destino
+
+**Como repartidor, quiero registrar mi llegada al destino, para informar que me
+encuentro en el lugar de entrega.**
+
+#### Criterios de aceptación
+
+- Solo el repartidor actualmente asignado puede registrar la llegada.
+- La llegada se registra como un evento diferente de la entrega.
+- El evento conserva fecha y hora.
+- El estado se refleja en el panel administrativo.
+- El cliente recibe una notificación diferenciada de llegada.
+- Registrar la llegada varias veces no crea eventos duplicados.
+- No se puede registrar una llegada sobre un pedido reasignado a otro
+  repartidor.
+
+### HU-R08 — Confirmación de entrega con evidencia
+
+**Como repartidor, quiero confirmar la entrega e incorporar una evidencia, para
+dejar constancia de que el pedido fue recibido por el cliente.**
+
+#### Criterios de aceptación
+
+- Solo el repartidor actualmente asignado puede confirmar la entrega.
+- La entrega se registra después de la llegada.
+- La confirmación exige una evidencia admitida: fotografía o código
+  proporcionado por el cliente.
+- La evidencia queda asociada al pedido.
+- Se registra la fecha y hora de entrega.
+- El panel refleja la entrega y permite consultar la evidencia.
+- El cliente recibe una notificación diferenciada de pedido entregado.
+- Repetir la confirmación no duplica el evento ni la evidencia.
+- Un pedido entregado deja de aparecer como asignación activa.
+
+Las notificaciones al cliente se producen en momentos diferentes: cuando el
+pedido inicia el trayecto, cuando el repartidor registra su llegada y cuando
+confirma la entrega.
