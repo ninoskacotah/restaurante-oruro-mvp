@@ -214,7 +214,8 @@ implementadas.
 ### Tecnologías
 
 - PostgreSQL;
-- SQLAlchemy.
+- SQLAlchemy;
+- Alembic.
 
 PostgreSQL almacenará la información persistente necesaria para representar:
 
@@ -229,9 +230,48 @@ PostgreSQL almacenará la información persistente necesaria para representar:
 - ubicaciones;
 - evidencias.
 
-Esta enumeración identifica responsabilidades de persistencia, pero no define
-tablas ni cardinalidades. SQLAlchemy representará los modelos de persistencia y
-gestionará la comunicación del backend con PostgreSQL.
+Esta enumeración identifica responsabilidades de persistencia. El modelo
+conceptual y sus cardinalidades se detallan más adelante en este documento.
+SQLAlchemy representará los modelos y gestionará la comunicación del backend con
+PostgreSQL.
+
+### Estrategia de migraciones
+
+Alembic mantendrá la evolución versionada del esquema. Cada revisión se
+conservará en Git e incluirá:
+
+- identificador de revisión;
+- referencia a la revisión anterior;
+- descripción breve y coherente con el cambio;
+- operación `upgrade()`;
+- operación `downgrade()` cuando el cambio sea técnicamente reversible.
+
+Una operación irreversible deberá declararlo y justificarlo de forma explícita.
+Los cambios destructivos requerirán revisión específica y un respaldo
+verificado antes de ejecutarse sobre datos compartidos.
+
+La autogeneración comparará los metadatos de SQLAlchemy con el esquema como
+punto de partida. Su resultado será un borrador: deberá revisarse para confirmar
+tipos, restricciones, índices, datos y operaciones de reversión antes del
+commit. Las migraciones de datos se distinguirán claramente de los cambios
+estructurales.
+
+`Base.metadata.create_all()` no sustituirá el historial de Alembic. Tampoco se
+modificará manualmente el esquema de los entornos compartidos sin una revisión
+versionada.
+
+La URL de PostgreSQL se obtendrá desde la configuración del entorno. Las
+credenciales no se escribirán en `alembic.ini` ni en otros archivos
+versionados.
+
+`develop` deberá conservar una sola cabeza de migraciones. Si el trabajo
+paralelo produce cabezas distintas, se reconciliarán antes de integrar. Como
+verificación, una base vacía deberá poder ejecutar todas las revisiones hasta
+`head`.
+
+Durante el despliegue, las migraciones se aplicarán antes de iniciar la nueva
+versión de la aplicación. Esta estrategia todavía no está configurada ni ha
+sido ejecutada contra una base real.
 
 ## Telegram Bot API
 

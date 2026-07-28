@@ -641,13 +641,77 @@ La referencia utilizada es OWASP Password Storage Cheat Sheet:
 La dependencia, creación del administrador, endpoints y pruebas de
 autenticación se implementarán en Issues posteriores.
 
+## DT-016 — Estrategia de migraciones de base de datos
+
+**Estado:** Aprobada.
+
+### Contexto
+
+El modelo de PostgreSQL evolucionará durante la implementación. Los cambios
+deben poder reproducirse desde una base vacía, conservar su orden y aplicarse en
+desarrollo y despliegue sin depender de modificaciones manuales.
+
+### Alternativas consideradas
+
+- Alembic integrado con los metadatos de SQLAlchemy.
+- Scripts SQL escritos y versionados manualmente.
+- Creación de tablas mediante `Base.metadata.create_all()`.
+
+### Decisión
+
+Utilizar Alembic para versionar la evolución del esquema de PostgreSQL. Cada
+revisión se almacenará en Git con su identificador, revisión anterior,
+descripción, `upgrade()` y, cuando la operación sea técnicamente reversible,
+`downgrade()`.
+
+La URL de conexión se obtendrá desde la configuración del entorno. Las
+credenciales no se incluirán en `alembic.ini` ni en archivos versionados.
+
+### Justificación
+
+Alembic pertenece al ecosistema de SQLAlchemy y permite mantener un historial
+ordenado de revisiones. Los scripts SQL manuales también pueden versionarse,
+pero obligan a sincronizar por separado las operaciones con los modelos. Por su
+parte, `create_all()` crea objetos ausentes, pero no representa la evolución del
+esquema ni sustituye un historial de migraciones.
+
+La función de autogeneración facilita comparar los metadatos con una base
+existente, aunque su salida es solo una migración candidata y no una decisión
+correcta por sí misma.
+
+### Consecuencias
+
+Toda revisión autogenerada deberá inspeccionarse y ajustarse antes del commit.
+La revisión comprobará tipos, restricciones, índices, datos afectados y
+reversión. Las migraciones de datos se distinguirán de las modificaciones
+estructurales.
+
+No se usarán cambios manuales sin revisión versionada en los entornos
+compartidos, ni `Base.metadata.create_all()` como sustituto de Alembic.
+`develop` mantendrá una sola cabeza. Si aparecen cabezas divergentes, deberán
+reconciliarse antes de integrar el trabajo.
+
+Una base vacía deberá poder aplicar todo el historial hasta `head`. El
+despliegue ejecutará las migraciones antes de iniciar la versión nueva de la
+aplicación. Los cambios destructivos requerirán respaldo previo, revisión
+adicional y una declaración explícita cuando no exista una reversión segura.
+
+Las referencias utilizadas son:
+
+- documentación de Alembic:
+  <https://alembic.sqlalchemy.org/en/latest/index.html>;
+- autogeneración:
+  <https://alembic.sqlalchemy.org/en/latest/autogenerate.html>.
+
+La dependencia, configuración, migración inicial y ejecución sobre PostgreSQL
+se realizarán en Issues posteriores.
+
 ## Decisiones pendientes
 
 Las siguientes decisiones requieren Issues separados:
 
 | Tema | Motivo para mantenerlo pendiente |
 |---|---|
-| Migraciones de base de datos | Debe seleccionarse y preparar el mecanismo junto con la estructura del backend |
 | Arquitectura física del VPS | Deben definirse procesos, red, proxy, dominio, HTTPS y respaldos |
 
 Ninguna opción pendiente se presentará como seleccionada o implementada hasta
