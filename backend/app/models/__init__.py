@@ -1,1 +1,6 @@
-"""Futuros modelos de persistencia de SQLAlchemy."""
+"""Modelos de persistencia registrados en los metadatos compartidos."""
+
+from app.models.cliente import Cliente
+
+
+__all__ = ["Cliente"]

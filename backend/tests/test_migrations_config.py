@@ -22,7 +22,7 @@ FAKE_DATABASE_URL = (
 
 
 class AlembicConfigTest(unittest.TestCase):
-    """Comprueba Alembic sin crear revisiones ni abrir conexiones."""
+    """Comprueba la primera revisión sin abrir conexiones."""
 
     def test_ini_has_script_location_without_database_url(self) -> None:
         """Evita almacenar la conexión en el archivo versionado."""
@@ -42,29 +42,49 @@ class AlembicConfigTest(unittest.TestCase):
 
         self.assertEqual(str(settings.database_url), FAKE_DATABASE_URL)
 
-    def test_script_directory_has_no_revisions(self) -> None:
-        """Confirma que el historial todavía no contiene migraciones."""
+    def test_script_directory_has_one_revision(self) -> None:
+        """Confirma que el historial solo contiene la revisión autorizada."""
         config = Config(ALEMBIC_INI)
         script = ScriptDirectory.from_config(config)
+        revisions = list(script.walk_revisions())
 
-        self.assertEqual(list(script.walk_revisions()), [])
+        self.assertEqual(len(revisions), 1)
+        self.assertEqual(revisions[0].revision, "0001_clientes")
+        self.assertIsNone(revisions[0].down_revision)
         self.assertEqual(
-            sorted(path.name for path in VERSIONS_DIRECTORY.iterdir()),
-            [".gitkeep"],
+            sorted(
+                path.name
+                for path in VERSIONS_DIRECTORY.iterdir()
+                if path.is_file() and path.suffix != ".pyc"
+            ),
+            [".gitkeep", "0001_crear_tabla_clientes.py"],
         )
 
-    def test_heads_command_succeeds_without_revisions(self) -> None:
+    def test_heads_command_lists_first_revision(self) -> None:
         """Inspecciona el historial sin necesitar PostgreSQL."""
         result = self.run_alembic("heads")
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(result.stdout.strip(), "")
+        self.assertIn("0001_clientes (head)", result.stdout)
 
     def test_offline_upgrade_succeeds_without_connection(self) -> None:
-        """Ejecuta el entorno offline con una URL ficticia."""
+        """Genera el SQL de avance con una URL ficticia."""
         result = self.run_alembic("upgrade", "head", "--sql")
 
         self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("CREATE TABLE clientes", result.stdout)
+        self.assertIn("uq_clientes_chat_id", result.stdout)
+
+    def test_offline_downgrade_succeeds_without_connection(self) -> None:
+        """Genera el SQL de reversión sin conectarse a PostgreSQL."""
+        result = self.run_alembic(
+            "downgrade",
+            "0001_clientes:base",
+            "--sql",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("DROP TABLE clientes", result.stdout)
 
     def run_alembic(self, *arguments: str) -> subprocess.CompletedProcess[str]:
         """Ejecuta Alembic con un entorno mínimo y controlado."""

@@ -85,9 +85,10 @@ La construcción del motor no abre por sí sola una conexión. En este increment
 las pruebas verifican la configuración y el ciclo transaccional sin un servidor
 PostgreSQL activo.
 
-Todavía no existen modelos, tablas ni migraciones, y no se utiliza
-`Base.metadata.create_all()`. La conexión contra una base real y la evolución
-del esquema se incorporarán en Issues posteriores.
+El primer modelo persistente representa al cliente identificado mediante
+Telegram. Todavía no existe lógica funcional que consulte o escriba sus datos,
+y no se utiliza `Base.metadata.create_all()`. La conexión contra una base real
+se incorporará en un Issue posterior.
 
 ## Base declarativa
 
@@ -96,9 +97,9 @@ los futuros modelos. Las convenciones producen nombres previsibles para
 índices, restricciones únicas, restricciones `CHECK`, claves foráneas y claves
 primarias.
 
-Estos metadatos permitirán que Alembic compare los modelos con el esquema en un
-incremento posterior. Actualmente no contienen tablas registradas, no ejecutan
-SQL y no crean el esquema.
+Estos metadatos permiten que Alembic compare los modelos con el esquema.
+Actualmente contienen únicamente la tabla `clientes`; importar el modelo no
+ejecuta SQL ni crea el esquema.
 
 ## Migraciones
 
@@ -111,17 +112,23 @@ Inspeccionar las cabezas del historial desde `backend/`:
 python -m alembic -c alembic.ini heads
 ```
 
-Generar la representación SQL de las revisiones existentes sin abrir una
-conexión:
+La primera cabeza corresponde a la creación de la tabla `clientes`. Generar su
+representación SQL sin abrir una conexión:
 
 ```bash
 python -m alembic -c alembic.ini upgrade head --sql
 ```
 
-El historial todavía no contiene revisiones. No debe ejecutarse
-`alembic revision`, `upgrade` en modo online ni otro comando que modifique una
-base hasta trabajar el Issue específico correspondiente. Toda revisión
-autogenerada deberá inspeccionarse antes del commit.
+También puede inspeccionarse la reversión de esa revisión:
+
+```bash
+python -m alembic -c alembic.ini downgrade 0001_clientes:base --sql
+```
+
+Estos comandos solo imprimen SQL. No debe ejecutarse `upgrade` o `downgrade` en
+modo online ni otro comando que modifique una base hasta trabajar el Issue
+específico correspondiente. Toda nueva revisión deberá inspeccionarse antes del
+commit.
 
 ## Verificación
 
