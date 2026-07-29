@@ -19,6 +19,12 @@ def payment_receipt_path(media_root: Path, mime_type: str) -> Path:
     return Path("comprobantes") / f"{uuid4().hex}{extension}"
 
 
+def delivery_evidence_path(media_root: Path, mime_type: str) -> Path:
+    """Genera la referencia privada para una fotografía de entrega."""
+    receipt = payment_receipt_path(media_root, mime_type)
+    return Path("entregas") / receipt.name
+
+
 def resolve_media_path(media_root: Path, relative_path: Path) -> Path:
     """Resuelve una referencia y evita que salga del directorio configurado."""
     root = media_root.resolve()

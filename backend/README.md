@@ -332,6 +332,33 @@ Se requieren `DATABASE_URL`, `TELEGRAM_BOT_TOKEN`, `MEDIA_ROOT` y
 pago. El bot usa long polling en el MVP; el VPS deberá ejecutar este proceso de
 forma separada a FastAPI.
 
+## Bot de Telegram: flujo del repartidor
+
+Los comandos `/repartidor` y `/mi_entrega` consultan el `chat_id` en la lista
+de repartidores registrados y activos. Un chat no habilitado no puede leer ni
+operar asignaciones. El detalle incluye platos, cantidades, total, estado del
+pago, cliente, contacto, referencia y el objeto `Location` del destino.
+
+La asignación continúa siendo una decisión exclusiva del administrador. La API
+envía al nuevo repartidor una notificación inmediata en segundo plano; no
+existe cola ni competencia. Cada botón vuelve a validar que la asignación
+permanezca activa, por lo que el repartidor anterior deja de operar después de
+una reasignación.
+
+El acuse, el inicio del trayecto y la llegada son eventos separados. Durante
+`EN_CAMINO`, el repartidor debe compartir una *live location* de Telegram. Para
+la demostración se espera una actualización aproximadamente cada **15
+segundos**, aunque Telegram decide el momento exacto de emisión. El sistema
+persiste cada punto diferente con su fecha y conserva el último cuando se
+interrumpe la señal. Si transcurren más de **30 segundos** sin actualización,
+el panel deberá presentar ese último punto como desactualizado; cuando vuelve
+la conectividad, el mismo recorrido continúa sin borrar ni mezclar posiciones.
+
+La entrega solo se completa después de registrar la llegada y adjuntar una
+fotografía o usar `/entrega CODIGO`. Las fotografías se guardan en
+`MEDIA_ROOT/entregas`. El cliente recibe mensajes diferentes al iniciar el
+trayecto, llegar al destino y completar la entrega.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:

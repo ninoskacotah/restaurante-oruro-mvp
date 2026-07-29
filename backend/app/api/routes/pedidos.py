@@ -1,9 +1,11 @@
 """Endpoints administrativos de pedidos, pagos y seguimiento."""
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, BackgroundTasks, status
 from sqlalchemy import select
 
 from app.api.dependencies import AuthDependency, SessionDependency
+from app.bot.delivery_service import active_delivery, format_delivery
+from app.core.config import get_settings
 from app.models import (
     Asignacion,
     ComprobantePago,
@@ -31,6 +33,34 @@ from app.services import (
 
 
 router = APIRouter(tags=["pedidos"])
+
+
+async def _send_assignment_notification(
+    *,
+    chat_id: str,
+    text: str,
+    latitude: float | None,
+    longitude: float | None,
+) -> None:
+    """Envía la asignación después de responder la solicitud administrativa."""
+    # La importación diferida mantiene la API comprobable sin abrir Telegram.
+    from aiogram import Bot
+
+    settings = get_settings()
+    bot = Bot(token=settings.telegram_bot_token.get_secret_value())
+    try:
+        await bot.send_message(
+            chat_id=chat_id,
+            text=f"Nueva asignación:\n\n{text}\n\nUsa /mi_entrega para operar.",
+        )
+        if latitude is not None and longitude is not None:
+            await bot.send_location(
+                chat_id=chat_id,
+                latitude=latitude,
+                longitude=longitude,
+            )
+    finally:
+        await bot.session.close()
 
 
 @router.get("/pedidos", response_model=list[PedidoOutput])
@@ -135,16 +165,44 @@ async def review_payment(
 async def assign_delivery(
     pedido_id: int,
     data: AsignacionInput,
+    background_tasks: BackgroundTasks,
     session: SessionDependency,
     auth: AuthDependency,
 ) -> Asignacion:
     """Asigna o reasigna un repartidor desde el panel."""
-    return await asignar_repartidor(
+    previous_result = await session.execute(
+        select(Asignacion).where(
+            Asignacion.pedido_id == pedido_id,
+            Asignacion.activa.is_(True),
+        )
+    )
+    previous = previous_result.scalar_one_or_none()
+    assignment = await asignar_repartidor(
         session,
         pedido_id=pedido_id,
         repartidor_id=data.repartidor_id,
         administrador_id=auth.administrador.id,
     )
+    summary = await active_delivery(session, assignment.repartidor_id)
+    courier = await session.get(Repartidor, assignment.repartidor_id)
+    is_new_assignment = previous is None or previous.id != assignment.id
+    if summary is not None and courier is not None and is_new_assignment:
+        background_tasks.add_task(
+            _send_assignment_notification,
+            chat_id=courier.chat_id,
+            text=format_delivery(summary),
+            latitude=(
+                float(summary.order.entrega_latitud)
+                if summary.order.entrega_latitud is not None
+                else None
+            ),
+            longitude=(
+                float(summary.order.entrega_longitud)
+                if summary.order.entrega_longitud is not None
+                else None
+            ),
+        )
+    return assignment
 
 
 @router.get(
