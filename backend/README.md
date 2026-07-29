@@ -154,6 +154,23 @@ Esta capa no crea administradores, no persiste contraseñas, no emite JWT y no
 implementa el inicio de sesión. Los parámetros todavía deben medirse en el VPS
 de Hetzner antes del despliegue.
 
+## Tokens administrativos
+
+La capa `app.core.tokens` emite y valida tokens de acceso firmados únicamente
+con `HS256`. Cada token dura 15 minutos, recibe un `jti` único y contiene las
+ocho claims establecidas en DT-014. La validación exige firma, algoritmo,
+emisor, audiencia, vigencia, identidad y rol, con una tolerancia temporal
+máxima de 30 segundos.
+
+`JWT_SECRET` puede cargarse de forma aislada sin exigir PostgreSQL ni Telegram.
+Debe tener al menos 32 caracteres y nunca se incorpora al repositorio. Esta
+validación de longitud no reemplaza la generación aleatoria de al menos 256 bits
+requerida para los entornos reales.
+
+El servicio todavía no autentica credenciales, no consulta administradores, no
+registra revocaciones y no protege endpoints FastAPI. Tampoco emite refresh
+tokens.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:
