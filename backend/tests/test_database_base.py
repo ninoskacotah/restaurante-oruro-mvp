@@ -5,7 +5,14 @@ import unittest
 from sqlalchemy.orm import DeclarativeBase
 
 from app.db.base import Base, NAMING_CONVENTION, metadata
-from app.models import Administrador, Cliente, Plato, Repartidor, TokenRevocado
+from app.models import (
+    Administrador,
+    Cliente,
+    Menu,
+    Plato,
+    Repartidor,
+    TokenRevocado,
+)
 
 
 class DatabaseBaseTest(unittest.TestCase):
@@ -39,6 +46,7 @@ class DatabaseBaseTest(unittest.TestCase):
             {
                 "administradores",
                 "clientes",
+                "menus",
                 "platos",
                 "repartidores",
                 "tokens_revocados",
@@ -49,6 +57,7 @@ class DatabaseBaseTest(unittest.TestCase):
             Administrador.__table__,
         )
         self.assertIs(metadata.tables["clientes"], Cliente.__table__)
+        self.assertIs(metadata.tables["menus"], Menu.__table__)
         self.assertIs(metadata.tables["platos"], Plato.__table__)
         self.assertIs(
             metadata.tables["repartidores"],
