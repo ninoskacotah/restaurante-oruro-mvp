@@ -48,8 +48,9 @@ class AlembicConfigTest(unittest.TestCase):
         script = ScriptDirectory.from_config(config)
         revisions = list(script.walk_revisions())
 
-        self.assertEqual(len(revisions), 9)
+        self.assertEqual(len(revisions), 10)
         expected_chain = [
+            ("0010_comprobantes_pago", "0009_detalles_pedido"),
             ("0009_detalles_pedido", "0008_pedidos"),
             ("0008_pedidos", "0007_detalles_menu"),
             ("0007_detalles_menu", "0006_menus"),
@@ -84,15 +85,16 @@ class AlembicConfigTest(unittest.TestCase):
                 "0007_crear_tabla_detalles_menu.py",
                 "0008_crear_tabla_pedidos.py",
                 "0009_crear_tabla_detalles_pedido.py",
+                "0010_crear_tabla_comprobantes_pago.py",
             ],
         )
 
-    def test_heads_command_lists_ninth_revision(self) -> None:
+    def test_heads_command_lists_tenth_revision(self) -> None:
         """Inspecciona el historial sin necesitar PostgreSQL."""
         result = self.run_alembic("heads")
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("0009_detalles_pedido (head)", result.stdout)
+        self.assertIn("0010_comprobantes_pago (head)", result.stdout)
 
     def test_offline_upgrade_succeeds_without_connection(self) -> None:
         """Genera el SQL de avance con una URL ficticia."""
@@ -108,6 +110,7 @@ class AlembicConfigTest(unittest.TestCase):
         self.assertIn("CREATE TABLE detalles_menu", result.stdout)
         self.assertIn("CREATE TABLE pedidos", result.stdout)
         self.assertIn("CREATE TABLE detalles_pedido", result.stdout)
+        self.assertIn("CREATE TABLE comprobantes_pago", result.stdout)
         self.assertIn("uq_clientes_chat_id", result.stdout)
         self.assertIn("uq_repartidores_chat_id", result.stdout)
         self.assertIn(
@@ -127,17 +130,22 @@ class AlembicConfigTest(unittest.TestCase):
         )
         self.assertIn("ck_detalles_pedido_cantidad", result.stdout)
         self.assertIn("ck_detalles_pedido_subtotal", result.stdout)
+        self.assertIn(
+            "ck_comprobantes_pago_tamanio_bytes",
+            result.stdout,
+        )
 
     def test_offline_downgrade_succeeds_without_connection(self) -> None:
         """Genera el SQL de reversión sin conectarse a PostgreSQL."""
         result = self.run_alembic(
             "downgrade",
-            "0009_detalles_pedido:0008_pedidos",
+            "0010_comprobantes_pago:0009_detalles_pedido",
             "--sql",
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("DROP TABLE detalles_pedido", result.stdout)
+        self.assertIn("DROP TABLE comprobantes_pago", result.stdout)
+        self.assertNotIn("DROP TABLE detalles_pedido", result.stdout)
         self.assertNotIn("DROP TABLE pedidos", result.stdout)
         self.assertNotIn("DROP TABLE detalles_menu", result.stdout)
         self.assertNotIn("DROP TABLE menus", result.stdout)

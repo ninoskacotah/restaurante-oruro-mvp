@@ -221,6 +221,14 @@ cantidad debe ser mayor que cero. La cabeza de Alembic es
 Todavía no existen operaciones que creen detalles, calculen importes o
 modifiquen stock.
 
+El modelo `ComprobantePago` conserva la referencia relativa y los metadatos de
+cada archivo enviado, comienza en estado `PENDIENTE` y permite incorporar al
+administrador y el resultado cuando ocurra la revisión. La cabeza de Alembic es
+`0010_comprobantes_pago`.
+
+Todavía no se reciben archivos, no se revisan comprobantes y no se confirma el
+pago.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:
