@@ -1,6 +1,6 @@
 # Declaración de autoría
 
-Yo, [nombre completo], postulante a auxiliar de docencia de [asignatura],
+Yo, Ninoska Carolina Cota Huallata, postulante a auxiliar de docencia de [asignatura],
 declaro que:
 
 1. El proyecto contenido en este repositorio es de mi autoría individual.
