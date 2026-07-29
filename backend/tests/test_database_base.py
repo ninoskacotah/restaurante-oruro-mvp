@@ -12,11 +12,14 @@ from app.models import (
     ComprobantePago,
     DetalleMenu,
     DetallePedido,
+    EvidenciaEntrega,
+    HistorialEstado,
     Menu,
     Pedido,
     Plato,
     Repartidor,
     TokenRevocado,
+    UbicacionTrayecto,
 )
 
 
@@ -55,11 +58,14 @@ class DatabaseBaseTest(unittest.TestCase):
                 "comprobantes_pago",
                 "detalles_menu",
                 "detalles_pedido",
+                "evidencias_entrega",
+                "historial_estados",
                 "menus",
                 "pedidos",
                 "platos",
                 "repartidores",
                 "tokens_revocados",
+                "ubicaciones_trayecto",
             },
         )
         self.assertIs(
@@ -83,6 +89,14 @@ class DatabaseBaseTest(unittest.TestCase):
             metadata.tables["detalles_pedido"],
             DetallePedido.__table__,
         )
+        self.assertIs(
+            metadata.tables["evidencias_entrega"],
+            EvidenciaEntrega.__table__,
+        )
+        self.assertIs(
+            metadata.tables["historial_estados"],
+            HistorialEstado.__table__,
+        )
         self.assertIs(metadata.tables["menus"], Menu.__table__)
         self.assertIs(metadata.tables["pedidos"], Pedido.__table__)
         self.assertIs(metadata.tables["platos"], Plato.__table__)
@@ -93,6 +107,10 @@ class DatabaseBaseTest(unittest.TestCase):
         self.assertIs(
             metadata.tables["tokens_revocados"],
             TokenRevocado.__table__,
+        )
+        self.assertIs(
+            metadata.tables["ubicaciones_trayecto"],
+            UbicacionTrayecto.__table__,
         )
 
 

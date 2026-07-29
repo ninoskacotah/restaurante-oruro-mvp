@@ -236,6 +236,15 @@ Alembic es `0011_asignaciones`.
 
 Todavía no se asignan ni reasignan repartidores y no se envían notificaciones.
 
+Los modelos `UbicacionTrayecto`, `EvidenciaEntrega` e `HistorialEstado`
+completan la persistencia básica de trazabilidad. Los puntos y evidencias se
+vinculan con una asignación concreta, mientras que el historial conserva los
+eventos del pedido y admite como máximo un actor identificado. La cabeza de
+Alembic es `0014_historial_estados`.
+
+Todavía no se reciben ubicaciones o evidencias, no se almacenan fotografías y
+no se ejecutan transiciones de estado.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:
