@@ -1,6 +1,7 @@
 """Punto de entrada del bot para ejecución mediante long polling."""
 
 import asyncio
+import sys
 
 from aiogram import Bot
 
@@ -31,5 +32,16 @@ async def main() -> None:
         await dispose_database_engine(engine)
 
 
-if __name__ == "__main__":
+def run_bot() -> None:
+    """Ejecuta el polling con un bucle compatible con Psycopg en Windows."""
+    if sys.platform == "win32":
+        with asyncio.Runner(
+            loop_factory=asyncio.SelectorEventLoop,
+        ) as runner:
+            runner.run(main())
+        return
     asyncio.run(main())
+
+
+if __name__ == "__main__":
+    run_bot()

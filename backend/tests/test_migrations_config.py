@@ -31,6 +31,15 @@ class AlembicConfigTest(unittest.TestCase):
         self.assertEqual(config.get_main_option("script_location"), "alembic")
         self.assertIsNone(config.get_main_option("sqlalchemy.url"))
 
+    def test_windows_migrations_select_a_psycopg_compatible_loop(self) -> None:
+        """Evita reintroducir ProactorEventLoop en la ejecución local."""
+        source = (BACKEND_DIRECTORY / "alembic" / "env.py").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn('sys.platform == "win32"', source)
+        self.assertIn("loop_factory=asyncio.SelectorEventLoop", source)
+
     def test_database_settings_do_not_require_other_secrets(self) -> None:
         """Carga solo PostgreSQL sin exigir Telegram o JWT."""
         with patch.dict(

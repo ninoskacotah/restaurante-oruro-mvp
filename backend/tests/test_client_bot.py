@@ -93,3 +93,11 @@ class BotSettingsTests(unittest.TestCase):
         )
         self.assertEqual(settings.media_root, Path("private/media"))
         self.assertEqual(settings.payment_qr_path, Path("private/qr.png"))
+
+    def test_bot_uses_psycopg_compatible_loop_on_windows(self) -> None:
+        source = (
+            Path(__file__).resolve().parents[1] / "app" / "bot" / "run.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('sys.platform == "win32"', source)
+        self.assertIn("loop_factory=asyncio.SelectorEventLoop", source)

@@ -182,6 +182,15 @@ class RepartidorOutput(ApiModel):
     activo: bool
 
 
+class RepartidorInput(BaseModel):
+    """Datos administrables de un repartidor registrado."""
+
+    chat_id: str = Field(min_length=1, max_length=100)
+    nombre: str | None = Field(default=None, max_length=150)
+    telefono: str | None = Field(default=None, max_length=50)
+    activo: bool = True
+
+
 class HistorialOutput(ApiModel):
     """Evento observable del ciclo del pedido."""
 

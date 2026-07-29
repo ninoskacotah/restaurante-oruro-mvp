@@ -1,7 +1,8 @@
 # Panel administrativo de Restaurant Las Retamas
 
-Aplicación Vue 3 y Vite que consume la API REST del proyecto. Esta primera
-entrega cubre autenticación, platos y programación de menús.
+Aplicación Vue 3 y Vite que consume la API REST del proyecto. Cubre
+autenticación, platos, programación de menús, pedidos, clientes, repartidores
+y reportes.
 
 La segunda parte añade el tablero de pedidos, revisión manual de comprobantes,
 asignación y reasignación, seguimiento con OpenStreetMap/Leaflet, fichas de
@@ -21,6 +22,9 @@ Vite publica el panel local y redirige `/api` hacia FastAPI en
 `http://127.0.0.1:8000`. Las credenciales y tokens no se escriben en archivos.
 El JWT permanece en `sessionStorage`, desaparece al cerrar la pestaña o al
 cerrar sesión y nunca se envía por URL.
+
+La preparación integral de PostgreSQL, el administrador de prueba y el bot se
+explica en [`docs/ejecucion-local.md`](../docs/ejecucion-local.md).
 
 ## Verificación
 

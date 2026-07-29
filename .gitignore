@@ -28,6 +28,7 @@ Thumbs.db
 # Archivos locales
 *.log
 *.sqlite3
+backend/var/
 
 # Frontend
 node_modules/
