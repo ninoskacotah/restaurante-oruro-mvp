@@ -22,6 +22,14 @@ from app.services.menus import (
     obtener_o_crear_menu,
     retirar_plato_del_menu,
 )
+from app.services.pedidos import (
+    agregar_plato_al_carrito,
+    confirmar_pedido,
+    modificar_cantidad_carrito,
+    obtener_o_crear_borrador,
+    obtener_pedido,
+    retirar_detalle_carrito,
+)
 
 
 __all__ = [
@@ -33,11 +41,17 @@ __all__ = [
     "actualizar_estado_menu",
     "actualizar_plato",
     "agregar_plato_al_menu",
+    "agregar_plato_al_carrito",
     "consultar_oferta_disponible",
     "crear_plato",
+    "confirmar_pedido",
     "desactivar_plato",
     "obtener_menu",
     "obtener_o_crear_menu",
+    "obtener_o_crear_borrador",
+    "obtener_pedido",
     "obtener_plato",
     "retirar_plato_del_menu",
+    "retirar_detalle_carrito",
+    "modificar_cantidad_carrito",
 ]
