@@ -36,6 +36,7 @@ onBeforeUnmount(() =>
         <RouterLink to="/catalogo">Platos</RouterLink>
         <RouterLink to="/menus">Menús</RouterLink>
         <RouterLink to="/pedidos">Pedidos</RouterLink>
+        <RouterLink to="/repartidores">Repartidores</RouterLink>
         <RouterLink to="/clientes">Clientes</RouterLink>
         <RouterLink to="/reportes">Reportes</RouterLink>
       </nav>

@@ -1,6 +1,7 @@
 """Entorno asíncrono de migraciones de Alembic."""
 
 import asyncio
+import sys
 from logging.config import fileConfig
 
 from alembic import context
@@ -69,7 +70,18 @@ async def run_migrations_online() -> None:
     await connectable.dispose()
 
 
+def run_online_with_compatible_loop() -> None:
+    """Usa el bucle compatible con Psycopg asíncrono en cada plataforma."""
+    if sys.platform == "win32":
+        with asyncio.Runner(
+            loop_factory=asyncio.SelectorEventLoop,
+        ) as runner:
+            runner.run(run_migrations_online())
+        return
+    asyncio.run(run_migrations_online())
+
+
 if context.is_offline_mode():
     run_migrations_offline()
 else:
-    asyncio.run(run_migrations_online())
+    run_online_with_compatible_loop()

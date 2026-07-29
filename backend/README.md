@@ -1,8 +1,8 @@
 # Backend de Restaurant Las Retamas
 
-Esta carpeta contiene la aplicación FastAPI inicial del backend del MVP. Incluye
-un endpoint técnico de salud, pero todavía no incorpora conexiones externas ni
-lógica funcional del restaurante.
+Esta carpeta contiene la API FastAPI y el bot de Telegram del MVP. La
+aplicación integra persistencia PostgreSQL, servicios del dominio, panel
+administrativo y los flujos conversacionales del cliente y del repartidor.
 
 ## Requisito
 
@@ -57,14 +57,18 @@ cp .env.example .env
 ```
 
 Después, sustituir en `.env` todos los valores ilustrativos. Este archivo
-contiene información sensible y no debe incorporarse a Git.
+contiene información sensible y no debe incorporarse a Git. La preparación
+asistida de PostgreSQL, migraciones y credenciales de prueba se encuentra en
+[`docs/ejecucion-local.md`](../docs/ejecucion-local.md).
 
 | Variable | Propósito |
 |---|---|
 | `APP_ENV` | Identifica el entorno: `development`, `test` o `production`. |
-| `DATABASE_URL` | Define la conexión futura con PostgreSQL. |
+| `DATABASE_URL` | Define la conexión con PostgreSQL. |
 | `TELEGRAM_BOT_TOKEN` | Contiene el token privado entregado por BotFather. |
-| `JWT_SECRET` | Contiene el secreto utilizado posteriormente para firmar JWT. |
+| `JWT_SECRET` | Contiene el secreto utilizado para firmar JWT. |
+| `MEDIA_ROOT` | Define el directorio privado de evidencias. |
+| `PAYMENT_QR_PATH` | Define la imagen QR utilizada por el flujo de pago. |
 
 Las variables definidas directamente en el sistema tienen prioridad sobre las
 escritas en `.env`. La configuración solo se carga cuando una operación llama a
@@ -81,9 +85,9 @@ Psycopg 3. Proporciona operaciones explícitas para:
 - cerrar siempre la sesión;
 - liberar los recursos del motor.
 
-La construcción del motor no abre por sí sola una conexión. En este incremento
-las pruebas verifican la configuración y el ciclo transaccional sin un servidor
-PostgreSQL activo.
+La construcción del motor no abre por sí sola una conexión. Las pruebas
+automatizadas verifican la configuración y el ciclo transaccional sin exigir
+un servidor PostgreSQL activo.
 
 Los modelos persistentes actuales representan al cliente identificado mediante
 Telegram, al repartidor registrado y al administrador del panel. Repartidores y
@@ -125,16 +129,9 @@ historial completo sin abrir una conexión:
 python -m alembic -c alembic.ini upgrade head --sql
 ```
 
-También puede inspeccionarse únicamente la reversión de la tercera revisión:
-
-```bash
-python -m alembic -c alembic.ini downgrade 0003_administradores:0002_repartidores --sql
-```
-
-Estos comandos solo imprimen SQL. No debe ejecutarse `upgrade` o `downgrade` en
-modo online ni otro comando que modifique una base hasta trabajar el Issue
-específico correspondiente. Toda nueva revisión deberá inspeccionarse antes del
-commit.
+La preparación local aplica el historial completo con
+`python -m app.cli.bootstrap_local`. Toda nueva revisión deberá inspeccionarse
+antes del commit.
 
 ## Protección de contraseñas
 

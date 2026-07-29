@@ -9,6 +9,7 @@ from app.core.config import get_settings
 from app.models import (
     Asignacion,
     ComprobantePago,
+    Cliente,
     DetallePedido,
     HistorialEstado,
     Pedido,
@@ -33,6 +34,30 @@ from app.services import (
 
 
 router = APIRouter(tags=["pedidos"])
+
+
+async def _send_client_notification(
+    *,
+    chat_id: str,
+    tracking_code: str,
+    state: str,
+) -> None:
+    """Notifica al cliente después de confirmar la operación administrativa."""
+    from aiogram import Bot
+
+    from app.bot.notifications import notify_client_state
+
+    settings = get_settings()
+    bot = Bot(token=settings.telegram_bot_token.get_secret_value())
+    try:
+        await notify_client_state(
+            bot,
+            chat_id=chat_id,
+            tracking_code=tracking_code,
+            state=state,
+        )
+    finally:
+        await bot.session.close()
 
 
 async def _send_assignment_notification(
@@ -144,17 +169,27 @@ async def get_history(
 async def review_payment(
     comprobante_id: int,
     data: RevisionComprobanteInput,
+    background_tasks: BackgroundTasks,
     session: SessionDependency,
     auth: AuthDependency,
 ) -> Pedido:
     """Aprueba o rechaza un comprobante mediante el actor autenticado."""
-    return await revisar_comprobante_pago(
+    pedido = await revisar_comprobante_pago(
         session,
         comprobante_id=comprobante_id,
         administrador_id=auth.administrador.id,
         aprobado=data.aprobado,
         observacion=data.observacion,
     )
+    client = await session.get(Cliente, pedido.cliente_id)
+    if data.aprobado and client is not None:
+        background_tasks.add_task(
+            _send_client_notification,
+            chat_id=client.chat_id,
+            tracking_code=pedido.codigo_seguimiento or str(pedido.id),
+            state="PAGO_CONFIRMADO",
+        )
+    return pedido
 
 
 @router.post(
@@ -201,6 +236,14 @@ async def assign_delivery(
                 if summary.order.entrega_longitud is not None
                 else None
             ),
+        )
+        background_tasks.add_task(
+            _send_client_notification,
+            chat_id=summary.client.chat_id,
+            tracking_code=(
+                summary.order.codigo_seguimiento or str(summary.order.id)
+            ),
+            state="ASIGNADO",
         )
     return assignment
 

@@ -51,7 +51,7 @@ onMounted(loadClients);
         @click="selectClient(client.id)"
       >
         <strong>{{ client.nombre || `Cliente #${client.id}` }}</strong>
-        <span>{{ client.telefono || "Sin teléfono" }}</span>
+        <span>Chat ID: {{ client.chat_id }}</span>
       </button>
     </section>
     <section v-if="detail" class="panel">
@@ -65,6 +65,10 @@ onMounted(loadClients);
         <div>
           <strong>{{ detail.cliente.telefono || "No registrado" }}</strong>
           <span>contacto</span>
+        </div>
+        <div>
+          <strong>{{ detail.cliente.chat_id }}</strong>
+          <span>Chat ID de Telegram</span>
         </div>
       </div>
       <h4>Historial de pedidos</h4>

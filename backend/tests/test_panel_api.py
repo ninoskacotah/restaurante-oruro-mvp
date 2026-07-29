@@ -30,8 +30,17 @@ class PanelOpenApiTests(unittest.TestCase):
             "/api/clientes/{cliente_id}",
             "/api/comprobantes/{comprobante_id}/archivo",
             "/api/reportes",
+            "/api/repartidores",
+            "/api/repartidores/{repartidor_id}",
         ):
             self.assertIn(path, paths)
+
+    def test_courier_management_methods_are_documented(self) -> None:
+        paths = app.openapi()["paths"]
+
+        self.assertIn("post", paths["/api/repartidores"])
+        self.assertIn("put", paths["/api/repartidores/{repartidor_id}"])
+        self.assertIn("delete", paths["/api/repartidores/{repartidor_id}"])
 
 
 class PrivateMediaTests(unittest.TestCase):

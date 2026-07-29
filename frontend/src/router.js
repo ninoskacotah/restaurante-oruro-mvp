@@ -8,6 +8,7 @@ import MenusView from "./views/MenusView.vue";
 import OrdersView from "./views/OrdersView.vue";
 import ClientsView from "./views/ClientsView.vue";
 import ReportsView from "./views/ReportsView.vue";
+import CouriersView from "./views/CouriersView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -24,6 +25,7 @@ const router = createRouter({
         { path: "pedidos", name: "orders", component: OrdersView },
         { path: "clientes", name: "clients", component: ClientsView },
         { path: "reportes", name: "reports", component: ReportsView },
+        { path: "repartidores", name: "couriers", component: CouriersView },
       ],
     },
     { path: "/:pathMatch(.*)*", redirect: "/" },

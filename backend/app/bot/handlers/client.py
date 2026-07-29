@@ -199,8 +199,14 @@ async def receive_quantity(
                     detalle_menu_id=offer.id,
                     cantidad=quantity,
                 )
+            lines = await cart_lines(session, order.id)
+            cart_text = format_cart(lines, order.total)
+            reply_markup = cart_keyboard(lines)
         await state.clear()
-        await message.answer("Carrito actualizado.")
+        await message.answer(
+            f"Carrito actualizado.\n\n{cart_text}",
+            reply_markup=reply_markup,
+        )
     except ErrorServicio as error:
         await message.answer(str(error))
 

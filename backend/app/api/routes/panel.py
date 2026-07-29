@@ -9,12 +9,14 @@ from sqlalchemy import func, select
 
 from app.api.dependencies import AuthDependency, SessionDependency
 from app.core.config import Settings, get_settings
-from app.models import Cliente, ComprobantePago, Pedido
+from app.models import Cliente, ComprobantePago, Pedido, Repartidor
 from app.schemas import (
     ClienteDetailOutput,
     ClienteOutput,
     PlatoPopularOutput,
     ReportesOutput,
+    RepartidorInput,
+    RepartidorOutput,
 )
 from app.services import (
     average_delivery_minutes,
@@ -24,6 +26,100 @@ from app.services import (
 
 
 router = APIRouter(tags=["panel"])
+
+
+async def _unique_courier_chat(
+    session,
+    chat_id: str,
+    *,
+    excluding_id: int | None = None,
+) -> None:
+    """Evita registrar el mismo chat para dos repartidores."""
+    statement = select(Repartidor.id).where(Repartidor.chat_id == chat_id)
+    if excluding_id is not None:
+        statement = statement.where(Repartidor.id != excluding_id)
+    result = await session.execute(statement)
+    if result.scalar_one_or_none() is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="El chat ya pertenece a otro repartidor.",
+        )
+
+
+@router.post(
+    "/repartidores",
+    response_model=RepartidorOutput,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_courier(
+    data: RepartidorInput,
+    session: SessionDependency,
+    _auth: AuthDependency,
+) -> Repartidor:
+    """Registra un chat que podrá autenticarse como repartidor."""
+    chat_id = data.chat_id.strip()
+    await _unique_courier_chat(session, chat_id)
+    courier = Repartidor(
+        chat_id=chat_id,
+        nombre=data.nombre.strip() if data.nombre else None,
+        telefono=data.telefono.strip() if data.telefono else None,
+        activo=data.activo,
+    )
+    session.add(courier)
+    await session.flush()
+    return courier
+
+
+@router.put(
+    "/repartidores/{repartidor_id}",
+    response_model=RepartidorOutput,
+)
+async def update_courier(
+    repartidor_id: int,
+    data: RepartidorInput,
+    session: SessionDependency,
+    _auth: AuthDependency,
+) -> Repartidor:
+    """Actualiza identidad, contacto y habilitación del repartidor."""
+    courier = await session.get(Repartidor, repartidor_id)
+    if courier is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="El repartidor solicitado no existe.",
+        )
+    chat_id = data.chat_id.strip()
+    await _unique_courier_chat(
+        session,
+        chat_id,
+        excluding_id=repartidor_id,
+    )
+    courier.chat_id = chat_id
+    courier.nombre = data.nombre.strip() if data.nombre else None
+    courier.telefono = data.telefono.strip() if data.telefono else None
+    courier.activo = data.activo
+    await session.flush()
+    return courier
+
+
+@router.delete(
+    "/repartidores/{repartidor_id}",
+    response_model=RepartidorOutput,
+)
+async def disable_courier(
+    repartidor_id: int,
+    session: SessionDependency,
+    _auth: AuthDependency,
+) -> Repartidor:
+    """Deshabilita el acceso sin borrar su historial de asignaciones."""
+    courier = await session.get(Repartidor, repartidor_id)
+    if courier is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="El repartidor solicitado no existe.",
+        )
+    courier.activo = False
+    await session.flush()
+    return courier
 
 
 @router.get("/clientes", response_model=list[ClienteOutput])
