@@ -5,10 +5,11 @@ import unittest
 from sqlalchemy.orm import DeclarativeBase
 
 from app.db.base import Base, NAMING_CONVENTION, metadata
+from app.models import Cliente
 
 
 class DatabaseBaseTest(unittest.TestCase):
-    """Comprueba los metadatos sin registrar tablas."""
+    """Comprueba la base y los metadatos compartidos."""
 
     def test_naming_convention_contains_expected_patterns(self) -> None:
         """Verifica exactamente las cinco convenciones aprobadas."""
@@ -31,9 +32,10 @@ class DatabaseBaseTest(unittest.TestCase):
         self.assertTrue(issubclass(Base, DeclarativeBase))
         self.assertIs(Base.metadata, metadata)
 
-    def test_metadata_starts_without_registered_tables(self) -> None:
+    def test_metadata_contains_only_authorized_table(self) -> None:
         """Evita anticipar entidades fuera del alcance del Issue."""
-        self.assertEqual(len(metadata.tables), 0)
+        self.assertEqual(set(metadata.tables), {"clientes"})
+        self.assertIs(metadata.tables["clientes"], Cliente.__table__)
 
 
 if __name__ == "__main__":
