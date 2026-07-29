@@ -17,6 +17,7 @@ const error = ref("");
 const success = ref("");
 const receiptUrls = reactive({});
 const assignment = ref("");
+let trackingInterval;
 
 const filteredOrders = computed(() =>
   orders.value.filter(
@@ -85,6 +86,17 @@ async function selectOrder(orderId) {
   }
 }
 
+async function refreshTracking() {
+  if (selectedId.value === null) return;
+  try {
+    tracking.value = await apiRequest(
+      `/pedidos/${selectedId.value}/seguimiento`,
+    );
+  } catch (requestError) {
+    error.value = requestError.message;
+  }
+}
+
 async function reviewReceipt(receipt, approved) {
   const observation = window.prompt(
     approved ? "Observación opcional:" : "Motivo del rechazo:",
@@ -121,8 +133,14 @@ async function assignCourier() {
   }
 }
 
-onMounted(loadOrders);
-onBeforeUnmount(releaseReceiptUrls);
+onMounted(() => {
+  loadOrders();
+  trackingInterval = window.setInterval(refreshTracking, 15_000);
+});
+onBeforeUnmount(() => {
+  window.clearInterval(trackingInterval);
+  releaseReceiptUrls();
+});
 </script>
 
 <template>

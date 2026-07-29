@@ -182,12 +182,16 @@ async def review_payment(
         observacion=data.observacion,
     )
     client = await session.get(Cliente, pedido.cliente_id)
-    if data.aprobado and client is not None:
+    if client is not None:
         background_tasks.add_task(
             _send_client_notification,
             chat_id=client.chat_id,
             tracking_code=pedido.codigo_seguimiento or str(pedido.id),
-            state="PAGO_CONFIRMADO",
+            state=(
+                "PAGO_CONFIRMADO"
+                if data.aprobado
+                else "PAGO_RECHAZADO"
+            ),
         )
     return pedido
 

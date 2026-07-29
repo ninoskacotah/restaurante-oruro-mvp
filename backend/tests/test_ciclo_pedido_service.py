@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import (
     Administrador,
+    Asignacion,
     ComprobantePago,
     DetalleMenu,
     DetallePedido,
@@ -385,6 +386,57 @@ class CicloPedidoServiceTest(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(oferta.stock, 3)
         self.assertEqual(pedido.estado_actual, "PAGO_CONFIRMADO")
+
+    async def test_cancelar_closes_active_assignment(self) -> None:
+        """Evita dejar trabajo operativo después del estado final."""
+        pedido = Pedido(
+            id=1,
+            cliente_id=4,
+            menu_id=2,
+            estado_actual="ASIGNADO",
+            total=Decimal("10.00"),
+        )
+        detalle = DetallePedido(
+            id=3,
+            pedido_id=1,
+            plato_id=7,
+            nombre_plato="Sopa",
+            precio_unitario=Decimal("10.00"),
+            cantidad=1,
+            subtotal=Decimal("10.00"),
+        )
+        oferta = DetalleMenu(
+            id=9,
+            menu_id=2,
+            plato_id=7,
+            stock=3,
+            disponible=True,
+        )
+        asignacion = Asignacion(
+            id=6,
+            pedido_id=1,
+            repartidor_id=2,
+            activa=True,
+        )
+        self.session.get.return_value = pedido
+        self.session.execute.side_effect = [
+            list_result([detalle]),
+            scalar_result(oferta),
+            list_result([asignacion]),
+        ]
+
+        await cancelar_pedido(
+            self.session,
+            pedido_id=1,
+            motivo="Cambio",
+            origen="CLIENTE",
+            cliente_id=4,
+        )
+
+        self.assertEqual(pedido.estado_actual, "CANCELADO")
+        self.assertFalse(asignacion.activa)
+        self.assertIsNotNone(asignacion.fecha_cierre)
+        self.assertEqual(oferta.stock, 4)
 
     async def test_cancelar_is_idempotent(self) -> None:
         """No consulta ni repone stock en una repetición."""

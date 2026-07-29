@@ -9,13 +9,23 @@ const props = defineProps({
 });
 
 const mapElement = ref(null);
+const now = ref(Date.now());
 let map;
 let destinationMarker;
 let courierMarker;
+let freshnessInterval;
 
 const stale = computed(() => {
   if (!props.courier?.fecha_registro) return false;
-  return Date.now() - new Date(props.courier.fecha_registro).getTime() > 30_000;
+  return now.value - new Date(props.courier.fecha_registro).getTime() > 30_000;
+});
+
+const lastUpdate = computed(() => {
+  if (!props.courier?.fecha_registro) return "Sin ubicación del repartidor";
+  return `Última actualización: ${new Intl.DateTimeFormat("es-BO", {
+    dateStyle: "short",
+    timeStyle: "medium",
+  }).format(new Date(props.courier.fecha_registro))}`;
 });
 
 function coordinate(point) {
@@ -64,13 +74,23 @@ async function renderMarkers() {
 }
 
 watch(() => [props.destination, props.courier], renderMarkers, { deep: true });
-onMounted(renderMarkers);
-onBeforeUnmount(() => map?.remove());
+watch(stale, renderMarkers);
+onMounted(() => {
+  renderMarkers();
+  freshnessInterval = window.setInterval(() => {
+    now.value = Date.now();
+  }, 5_000);
+});
+onBeforeUnmount(() => {
+  window.clearInterval(freshnessInterval);
+  map?.remove();
+});
 </script>
 
 <template>
   <div class="map-wrap">
     <div ref="mapElement" class="delivery-map" aria-label="Mapa del reparto" />
+    <p class="muted">{{ lastUpdate }}</p>
     <p v-if="stale" class="map-warning">
       La última ubicación tiene más de 30 segundos y puede estar desactualizada.
     </p>
