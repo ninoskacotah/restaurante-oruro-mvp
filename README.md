@@ -26,7 +26,7 @@ asignaciones y los estados del pedido se mantienen integrados.
 | Seguridad | Argon2id y JSON Web Token |
 | Panel web | Vue 3.5, Vue Router 4.5 y Vite 7 |
 | Mapas | Leaflet 1.9 y OpenStreetMap |
-| Pruebas | Pytest y Vitest |
+| Pruebas | `unittest` y Vitest |
 
 Las razones de selección y las alternativas evaluadas se encuentran en
 [docs/decisiones-tecnicas.md](docs/decisiones-tecnicas.md).
@@ -144,7 +144,7 @@ Backend:
 
 ```powershell
 cd backend
-.\.venv\Scripts\python.exe -m pytest
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
 Frontend:

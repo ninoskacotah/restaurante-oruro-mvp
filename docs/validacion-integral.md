@@ -75,3 +75,23 @@ La entrega mediante `/entrega CODIGO` conserva la referencia escrita por el
 repartidor, pero el MVP no genera ni valida un código de un solo uso entregado
 previamente al cliente. La evidencia fotográfica es la alternativa comprobada
 en el flujo local.
+
+## Auditoría final previa a la versión estable
+
+El 29 de julio de 2026 se repitieron las verificaciones automatizadas sobre
+`develop` después de integrar la documentación de entrega:
+
+| Verificación | Resultado |
+|---|---|
+| Backend: `python -m unittest discover -s tests -v` | 167 pruebas correctas |
+| Frontend: `pnpm test` | 10 pruebas correctas en 4 archivos |
+| Frontend: `pnpm build` | Compilación de producción correcta |
+| Secretos locales | `.env` y `backend/var/` ignorados por Git |
+
+La primera orden intentada con `pytest` no pudo ejecutarse porque esa herramienta
+no forma parte de las dependencias del proyecto. Se utilizó el ejecutor real de
+la suite, `unittest`, y se corrigió el README para que el procedimiento sea
+reproducible.
+
+Esta auditoría no sustituye la captura real del bot requerida para la entrega ni
+la finalización personal de la declaración de autoría.
