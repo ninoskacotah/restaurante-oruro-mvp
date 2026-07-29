@@ -189,6 +189,7 @@ captura que exponga datos de la conversación utilizada en la prueba local.
 - [Máquina de estados](docs/estados-pedido.md)
 - [Metodología de desarrollo](docs/metodologia-desarrollo.md)
 - [Decisiones técnicas](docs/decisiones-tecnicas.md)
+- [Manual de despliegue](docs/despliegue.md)
 - [Registro de uso de IA](docs/uso-ia.md)
 
 ## Limitaciones conocidas
