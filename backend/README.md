@@ -205,6 +205,14 @@ no negativo y comienza como no disponible. La combinación de menú y plato es
 
 Todavía no existen operaciones que registren ofertas o descuenten stock.
 
+El modelo `Pedido` conserva la cabecera vinculada con un cliente, el estado
+inicial `BORRADOR`, el total, el destino fijo y un código de seguimiento
+opcional mientras se prepara el pedido. El total no puede ser negativo y la
+cabeza de Alembic es `0008_pedidos`.
+
+Todavía no se incorporan detalles, cálculos, transiciones, servicios ni
+interfaces para gestionar pedidos.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:
