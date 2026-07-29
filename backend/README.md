@@ -191,6 +191,14 @@ precio no puede ser negativo. La cabeza de Alembic es `0005_platos`.
 Este incremento todavía no incorpora CRUD, imágenes, menús, stock, endpoints
 ni integración con el bot o el panel.
 
+## Programación de menús
+
+El modelo `Menu` representa una oferta diaria mediante una fecha única y un
+estado inactivo por defecto. La cabeza de Alembic es `0006_menus`.
+
+Todavía no se asocian platos, stock o disponibilidad y no existen menús reales
+registrados.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:
