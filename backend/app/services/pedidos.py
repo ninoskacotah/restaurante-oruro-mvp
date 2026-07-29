@@ -302,6 +302,7 @@ async def confirmar_pedido(
             oferta.disponible = False
 
     await _actualizar_total(session, pedido, detalles)
+    pedido.menu_id = menu_id
     pedido.codigo_seguimiento = codigo
     pedido.estado_actual = ESTADO_PENDIENTE_UBICACION
     session.add(

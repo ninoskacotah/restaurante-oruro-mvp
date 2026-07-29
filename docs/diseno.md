@@ -549,6 +549,7 @@ implementados.
 erDiagram
     CLIENTE ||--o{ PEDIDO : realiza
     MENU ||--o{ DETALLE_MENU : contiene
+    MENU o|--o{ PEDIDO : origina
     PLATO ||--o{ DETALLE_MENU : integra
     PEDIDO ||--o{ DETALLE_PEDIDO : contiene
     PLATO ||--o{ DETALLE_PEDIDO : referencia
@@ -622,6 +623,7 @@ erDiagram
     PEDIDO {
         int id PK
         int cliente_id FK
+        int menu_id FK
         string codigo_seguimiento UK
         string estado_actual
         decimal total
@@ -715,6 +717,12 @@ Cada `PEDIDO` pertenece a un solo cliente y debe contener al menos un
 unitario utilizados en ese momento, además de referenciar al plato. De esta
 manera, una modificación posterior del catálogo no altera el contenido
 histórico del pedido.
+
+El campo opcional `menu_id` se completa durante la confirmación y conserva la
+oferta concreta de la cual se descontó stock. Esta referencia permite que una
+cancelación posterior reponga las cantidades en el mismo menú, sin inferirlo
+por la fecha ni alterar otra oferta. Permanece vacío mientras el pedido todavía
+es un borrador sin confirmar.
 
 La ubicación fija de entrega se conserva en `PEDIDO`. Es distinta de las
 ubicaciones generadas durante el trayecto. El código de seguimiento debe ser

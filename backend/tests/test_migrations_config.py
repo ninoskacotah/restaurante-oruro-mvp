@@ -48,8 +48,9 @@ class AlembicConfigTest(unittest.TestCase):
         script = ScriptDirectory.from_config(config)
         revisions = list(script.walk_revisions())
 
-        self.assertEqual(len(revisions), 14)
+        self.assertEqual(len(revisions), 15)
         expected_chain = [
+            ("0015_pedido_menu", "0014_historial_estados"),
             ("0014_historial_estados", "0013_evidencias_entrega"),
             ("0013_evidencias_entrega", "0012_ubicaciones_trayecto"),
             ("0012_ubicaciones_trayecto", "0011_asignaciones"),
@@ -94,15 +95,16 @@ class AlembicConfigTest(unittest.TestCase):
                 "0012_crear_tabla_ubicaciones_trayecto.py",
                 "0013_crear_tabla_evidencias_entrega.py",
                 "0014_crear_tabla_historial_estados.py",
+                "0015_vincular_pedido_menu.py",
             ],
         )
 
-    def test_heads_command_lists_fourteenth_revision(self) -> None:
+    def test_heads_command_lists_fifteenth_revision(self) -> None:
         """Inspecciona el historial sin necesitar PostgreSQL."""
         result = self.run_alembic("heads")
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("0014_historial_estados (head)", result.stdout)
+        self.assertIn("0015_pedido_menu (head)", result.stdout)
 
     def test_offline_upgrade_succeeds_without_connection(self) -> None:
         """Genera el SQL de avance con una URL ficticia."""
@@ -123,6 +125,8 @@ class AlembicConfigTest(unittest.TestCase):
         self.assertIn("CREATE TABLE ubicaciones_trayecto", result.stdout)
         self.assertIn("CREATE TABLE evidencias_entrega", result.stdout)
         self.assertIn("CREATE TABLE historial_estados", result.stdout)
+        self.assertIn("ADD COLUMN menu_id", result.stdout)
+        self.assertIn("fk_pedidos_menu_id_menus", result.stdout)
         self.assertIn("uq_clientes_chat_id", result.stdout)
         self.assertIn("uq_repartidores_chat_id", result.stdout)
         self.assertIn(
@@ -160,15 +164,13 @@ class AlembicConfigTest(unittest.TestCase):
         """Genera el SQL de reversión sin conectarse a PostgreSQL."""
         result = self.run_alembic(
             "downgrade",
-            "0014_historial_estados:0011_asignaciones",
+            "0015_pedido_menu:0014_historial_estados",
             "--sql",
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("DROP TABLE historial_estados", result.stdout)
-        self.assertIn("DROP TABLE evidencias_entrega", result.stdout)
-        self.assertIn("DROP TABLE ubicaciones_trayecto", result.stdout)
-        self.assertNotIn("DROP TABLE asignaciones", result.stdout)
+        self.assertIn("DROP COLUMN menu_id", result.stdout)
+        self.assertNotIn("DROP TABLE historial_estados", result.stdout)
         self.assertNotIn("DROP TABLE comprobantes_pago", result.stdout)
         self.assertNotIn("DROP TABLE detalles_pedido", result.stdout)
         self.assertNotIn("DROP TABLE pedidos", result.stdout)

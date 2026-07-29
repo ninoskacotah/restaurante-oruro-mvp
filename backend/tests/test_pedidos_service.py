@@ -444,6 +444,7 @@ class PedidosServiceTest(unittest.IsolatedAsyncioTestCase):
         self.assertIs(result, pedido)
         self.assertEqual(pedido.total, Decimal("20.00"))
         self.assertEqual(pedido.codigo_seguimiento, "RET-PRUEBA")
+        self.assertEqual(pedido.menu_id, 4)
         self.assertEqual(pedido.estado_actual, "PENDIENTE_UBICACION")
         self.assertEqual(oferta.stock, 0)
         self.assertFalse(oferta.disponible)
