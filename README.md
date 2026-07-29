@@ -191,6 +191,7 @@ captura que exponga datos de la conversación utilizada en la prueba local.
 - [Decisiones técnicas](docs/decisiones-tecnicas.md)
 - [Manual de despliegue](docs/despliegue.md)
 - [Registro de uso de IA](docs/uso-ia.md)
+- [Declaración de autoría](docs/declaracion-autoria.md)
 
 ## Limitaciones conocidas
 
