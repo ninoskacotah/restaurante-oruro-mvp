@@ -7,6 +7,12 @@ from app.services.catalogo import (
     desactivar_plato,
     obtener_plato,
 )
+from app.services.ciclo_pedido import (
+    cancelar_pedido,
+    registrar_comprobante_pago,
+    registrar_ubicacion_entrega,
+    revisar_comprobante_pago,
+)
 from app.services.errors import (
     ConflictoServicio,
     ErrorServicio,
@@ -41,6 +47,7 @@ __all__ = [
     "actualizar_estado_menu",
     "actualizar_plato",
     "agregar_plato_al_menu",
+    "cancelar_pedido",
     "agregar_plato_al_carrito",
     "consultar_oferta_disponible",
     "crear_plato",
@@ -53,5 +60,8 @@ __all__ = [
     "obtener_plato",
     "retirar_plato_del_menu",
     "retirar_detalle_carrito",
+    "registrar_comprobante_pago",
+    "registrar_ubicacion_entrega",
+    "revisar_comprobante_pago",
     "modificar_cantidad_carrito",
 ]

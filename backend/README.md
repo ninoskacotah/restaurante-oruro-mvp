@@ -260,8 +260,18 @@ stock, valida todo el carrito antes de modificarlo, genera un código único,
 descuenta existencias y registra el paso a `PENDIENTE_UBICACION`.
 
 Repetir una confirmación ya completada devuelve el mismo pedido sin duplicar el
-descuento ni el historial. La cancelación y la reposición de stock todavía no
-están implementadas; se coordinarán con el servicio de estados.
+descuento ni el historial. La confirmación también conserva el menú de origen
+mediante la revisión `0015_pedido_menu`.
+
+El servicio del ciclo posterior registra el destino, los metadatos del
+comprobante y su revisión administrativa. La aprobación conduce a
+`PAGO_CONFIRMADO`; el rechazo conserva el intento y vuelve a
+`PENDIENTE_COMPROBANTE`.
+
+La cancelación bloquea los detalles del menú de origen, valida toda la oferta y
+repone el stock una sola vez antes de registrar `CANCELADO`. Todavía no se
+escriben archivos físicos ni existen endpoints o interfaces para estas
+operaciones.
 
 ## Verificación
 

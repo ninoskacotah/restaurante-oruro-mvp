@@ -30,6 +30,11 @@ class Pedido(Base):
         ForeignKey("clientes.id"),
         nullable=False,
     )
+    # El menú de origen permite reponer exactamente el stock descontado.
+    menu_id: Mapped[int | None] = mapped_column(
+        ForeignKey("menus.id"),
+        nullable=True,
+    )
     # El código se asignará al confirmar; por eso puede faltar en el borrador.
     codigo_seguimiento: Mapped[str | None] = mapped_column(
         String(32),
