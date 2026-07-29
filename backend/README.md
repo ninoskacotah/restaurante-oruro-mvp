@@ -286,6 +286,21 @@ eventos, puntos idénticos ni evidencias.
 Todavía no se envían notificaciones, no se reciben actualizaciones desde
 Telegram y no se escriben fotografías en el sistema de archivos.
 
+La API administrativa registra sus routers bajo `/api` y publica contratos
+OpenAPI para autenticación, catálogo, menús, pedidos, comprobantes,
+asignaciones e información de seguimiento. Los modelos de respuesta excluyen
+hashes, secretos y contenido binario.
+
+El inicio de sesión utiliza Argon2id y emite el JWT de corta duración definido
+por el proyecto. Cada endpoint protegido valida Bearer, firma, claims,
+revocación y estado del administrador. El cierre de sesión conserva únicamente
+el `jti` y su vencimiento.
+
+Cada solicitud recibe una sesión asíncrona administrada como unidad de trabajo.
+Los errores controlados se traducen a HTTP 404, 409 o 422 y una excepción
+revierte la transacción. Todavía no existen endpoints para el bot, carga
+multipart de archivos, mapa visual o reportes.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:
