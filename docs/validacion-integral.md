@@ -50,6 +50,8 @@ ubicación precisa no forman parte de las evidencias versionadas.
 6. [Repartidor con datos protegidos](evidencias/validacion-local/06-repartidor-protegido.png).
 7. [Clientes con datos protegidos](evidencias/validacion-local/07-clientes-protegidos.png).
 8. [Reportes operativos](evidencias/validacion-local/08-reportes.png).
+9. [Menú disponible en el bot](evidencias/validacion-local/09-bot-menu.jpeg).
+10. [Carrito y acciones del bot](evidencias/validacion-local/10-bot-carrito.jpeg).
 
 ## Incidencias detectadas durante la integración
 
@@ -93,5 +95,5 @@ no forma parte de las dependencias del proyecto. Se utilizó el ejecutor real de
 la suite, `unittest`, y se corrigió el README para que el procedimiento sea
 reproducible.
 
-Esta auditoría no sustituye la captura real del bot requerida para la entrega ni
-la finalización personal de la declaración de autoría.
+La declaración de autoría y las capturas reales del bot se completaron después
+de esta auditoría mediante cambios documentales trazables.

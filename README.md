@@ -168,11 +168,12 @@ La validación integral realizada y sus resultados se documentan en
 
 ### Bot de Telegram
 
-La evidencia del flujo conversacional debe obtenerse durante la demostración con
-la cuenta de prueba, ocultando nombres, identificadores, teléfonos, tokens,
-ubicaciones y comprobantes. El recorrido validado se detalla en
-[docs/validacion-integral.md](docs/validacion-integral.md); no se incorpora una
-captura que exponga datos de la conversación utilizada en la prueba local.
+![Menú disponible en el bot](docs/evidencias/validacion-local/09-bot-menu.jpeg)
+
+![Carrito y acciones del bot](docs/evidencias/validacion-local/10-bot-carrito.jpeg)
+
+Las capturas proceden de la prueba local y fueron seleccionadas para no publicar
+nombres, identificadores, teléfonos, tokens, ubicaciones ni comprobantes.
 
 ## Manuales
 
