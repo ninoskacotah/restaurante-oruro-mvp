@@ -254,6 +254,15 @@ La consulta compartida de oferta disponible exige menú y plato activos, detalle
 visible y stock mayor que cero. Todavía no existen endpoints ni interfaces para
 consumir estos servicios.
 
+El servicio de pedidos permite crear o recuperar un borrador, administrar sus
+detalles históricos y recalcular importes. La confirmación bloquea las filas de
+stock, valida todo el carrito antes de modificarlo, genera un código único,
+descuenta existencias y registra el paso a `PENDIENTE_UBICACION`.
+
+Repetir una confirmación ya completada devuelve el mismo pedido sin duplicar el
+descuento ni el historial. La cancelación y la reposición de stock todavía no
+están implementadas; se coordinarán con el servicio de estados.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:
