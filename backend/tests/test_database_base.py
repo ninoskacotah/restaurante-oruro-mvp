@@ -8,6 +8,7 @@ from app.db.base import Base, NAMING_CONVENTION, metadata
 from app.models import (
     Administrador,
     Cliente,
+    DetalleMenu,
     Menu,
     Plato,
     Repartidor,
@@ -46,6 +47,7 @@ class DatabaseBaseTest(unittest.TestCase):
             {
                 "administradores",
                 "clientes",
+                "detalles_menu",
                 "menus",
                 "platos",
                 "repartidores",
@@ -57,6 +59,10 @@ class DatabaseBaseTest(unittest.TestCase):
             Administrador.__table__,
         )
         self.assertIs(metadata.tables["clientes"], Cliente.__table__)
+        self.assertIs(
+            metadata.tables["detalles_menu"],
+            DetalleMenu.__table__,
+        )
         self.assertIs(metadata.tables["menus"], Menu.__table__)
         self.assertIs(metadata.tables["platos"], Plato.__table__)
         self.assertIs(
