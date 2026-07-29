@@ -182,6 +182,15 @@ python -m alembic -c alembic.ini downgrade 0004_tokens_revocados:0003_administra
 
 Todavía no existe lógica para registrar, consultar o eliminar revocaciones.
 
+## Catálogo de platos
+
+El modelo `Plato` inicia el catálogo persistente con nombre, descripción,
+precio decimal y estado. Los platos permanecen inactivos por defecto y el
+precio no puede ser negativo. La cabeza de Alembic es `0005_platos`.
+
+Este incremento todavía no incorpora CRUD, imágenes, menús, stock, endpoints
+ni integración con el bot o el panel.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:
