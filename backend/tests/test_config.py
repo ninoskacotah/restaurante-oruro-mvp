@@ -7,7 +7,9 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from app.core.config import Settings
+from pydantic import ValidationError
+
+from app.core.config import JwtSettings, Settings
 
 
 class SettingsTest(unittest.TestCase):
@@ -64,6 +66,22 @@ class SettingsTest(unittest.TestCase):
             module = importlib.import_module("app.main")
 
         self.assertIsNotNone(module.app)
+
+    def test_jwt_settings_do_not_require_other_services(self) -> None:
+        """Carga el secreto sin exigir PostgreSQL ni Telegram."""
+        with patch.dict(
+            os.environ,
+            {"JWT_SECRET": "s" * 32},
+            clear=True,
+        ):
+            settings = JwtSettings(_env_file=None)
+
+        self.assertEqual(settings.jwt_secret.get_secret_value(), "s" * 32)
+
+    def test_jwt_secret_rejects_short_values(self) -> None:
+        """Hace explícito el mínimo aprobado para la clave de firma."""
+        with self.assertRaises(ValidationError):
+            JwtSettings(jwt_secret="secreto-corto", _env_file=None)
 
 
 if __name__ == "__main__":
