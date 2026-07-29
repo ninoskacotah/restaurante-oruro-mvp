@@ -28,3 +28,8 @@ Thumbs.db
 # Archivos locales
 *.log
 *.sqlite3
+
+# Frontend
+node_modules/
+dist/
+coverage/
