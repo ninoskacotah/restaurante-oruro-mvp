@@ -171,6 +171,17 @@ El servicio todavía no autentica credenciales, no consulta administradores, no
 registra revocaciones y no protege endpoints FastAPI. Tampoco emite refresh
 tokens.
 
+La persistencia dispone de la tabla `tokens_revocados` para conservar un `jti`,
+el administrador relacionado, la fecha de revocación y el vencimiento. El JWT
+completo no forma parte del modelo. La cabeza actual de Alembic es
+`0004_tokens_revocados`; puede inspeccionarse su reversión sin conexión con:
+
+```bash
+python -m alembic -c alembic.ini downgrade 0004_tokens_revocados:0003_administradores --sql
+```
+
+Todavía no existe lógica para registrar, consultar o eliminar revocaciones.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:

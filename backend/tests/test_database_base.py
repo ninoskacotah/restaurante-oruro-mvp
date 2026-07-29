@@ -5,7 +5,7 @@ import unittest
 from sqlalchemy.orm import DeclarativeBase
 
 from app.db.base import Base, NAMING_CONVENTION, metadata
-from app.models import Administrador, Cliente, Repartidor
+from app.models import Administrador, Cliente, Repartidor, TokenRevocado
 
 
 class DatabaseBaseTest(unittest.TestCase):
@@ -36,7 +36,12 @@ class DatabaseBaseTest(unittest.TestCase):
         """Evita anticipar entidades fuera del alcance del Issue."""
         self.assertEqual(
             set(metadata.tables),
-            {"administradores", "clientes", "repartidores"},
+            {
+                "administradores",
+                "clientes",
+                "repartidores",
+                "tokens_revocados",
+            },
         )
         self.assertIs(
             metadata.tables["administradores"],
@@ -46,6 +51,10 @@ class DatabaseBaseTest(unittest.TestCase):
         self.assertIs(
             metadata.tables["repartidores"],
             Repartidor.__table__,
+        )
+        self.assertIs(
+            metadata.tables["tokens_revocados"],
+            TokenRevocado.__table__,
         )
 
 
