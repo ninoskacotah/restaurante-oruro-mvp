@@ -1,1 +1,51 @@
 """Futuros contratos de entrada y salida del backend."""
+"""Esquemas validados expuestos por FastAPI."""
+
+from app.schemas.api import (
+    AdministradorOutput,
+    AsignacionInput,
+    AsignacionOutput,
+    DetalleMenuInput,
+    DetalleMenuOutput,
+    DetallePedidoOutput,
+    ComprobanteOutput,
+    HistorialOutput,
+    LoginInput,
+    MenuCreate,
+    MenuOutput,
+    MenuState,
+    OfertaInput,
+    PedidoOutput,
+    PedidoDetailOutput,
+    PlatoInput,
+    PlatoOutput,
+    RevisionComprobanteInput,
+    RepartidorOutput,
+    SeguimientoOutput,
+    TokenOutput,
+)
+
+
+__all__ = [
+    "AdministradorOutput",
+    "AsignacionInput",
+    "AsignacionOutput",
+    "DetalleMenuInput",
+    "DetalleMenuOutput",
+    "DetallePedidoOutput",
+    "ComprobanteOutput",
+    "HistorialOutput",
+    "LoginInput",
+    "MenuCreate",
+    "MenuOutput",
+    "MenuState",
+    "OfertaInput",
+    "PedidoOutput",
+    "PedidoDetailOutput",
+    "PlatoInput",
+    "PlatoOutput",
+    "RevisionComprobanteInput",
+    "RepartidorOutput",
+    "SeguimientoOutput",
+    "TokenOutput",
+]
