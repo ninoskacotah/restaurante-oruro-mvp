@@ -36,6 +36,14 @@ from app.services.pedidos import (
     obtener_pedido,
     retirar_detalle_carrito,
 )
+from app.services.reparto import (
+    acusar_recepcion,
+    asignar_repartidor,
+    confirmar_entrega,
+    iniciar_trayecto,
+    registrar_llegada,
+    registrar_ubicacion_trayecto,
+)
 
 
 __all__ = [
@@ -49,19 +57,25 @@ __all__ = [
     "agregar_plato_al_menu",
     "cancelar_pedido",
     "agregar_plato_al_carrito",
+    "acusar_recepcion",
+    "asignar_repartidor",
     "consultar_oferta_disponible",
     "crear_plato",
     "confirmar_pedido",
+    "confirmar_entrega",
     "desactivar_plato",
     "obtener_menu",
     "obtener_o_crear_menu",
     "obtener_o_crear_borrador",
     "obtener_pedido",
+    "iniciar_trayecto",
     "obtener_plato",
     "retirar_plato_del_menu",
     "retirar_detalle_carrito",
     "registrar_comprobante_pago",
     "registrar_ubicacion_entrega",
+    "registrar_ubicacion_trayecto",
+    "registrar_llegada",
     "revisar_comprobante_pago",
     "modificar_cantidad_carrito",
 ]

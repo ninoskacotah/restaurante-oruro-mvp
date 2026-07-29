@@ -273,6 +273,19 @@ repone el stock una sola vez antes de registrar `CANCELADO`. Todavía no se
 escriben archivos físicos ni existen endpoints o interfaces para estas
 operaciones.
 
+El servicio de reparto permite asignar o reasignar un repartidor habilitado,
+registrar su acuse, iniciar el trayecto, conservar ubicaciones, diferenciar la
+llegada y confirmar la entrega. Todas las acciones validan la asignación activa
+y mantienen la secuencia de estados compartida.
+
+La reasignación cierra el vínculo anterior sin eliminarlo y devuelve el pedido
+a `ASIGNADO`. La entrega admite fotografía con metadatos o código, registra
+`ENTREGADO` y cierra la asignación. Los reintentos controlados no duplican
+eventos, puntos idénticos ni evidencias.
+
+Todavía no se envían notificaciones, no se reciben actualizaciones desde
+Telegram y no se escriben fotografías en el sistema de archivos.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:
