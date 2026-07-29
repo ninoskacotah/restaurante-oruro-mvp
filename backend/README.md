@@ -1,0 +1,402 @@
+# Backend de Restaurant Las Retamas
+
+Esta carpeta contiene la API FastAPI y el bot de Telegram del MVP. La
+aplicación integra persistencia PostgreSQL, servicios del dominio, panel
+administrativo y los flujos conversacionales del cliente y del repartidor.
+
+## Requisito
+
+- Python 3.12.
+
+Puede comprobarse la versión disponible con:
+
+```bash
+python --version
+```
+
+## Preparación del entorno
+
+Desde la carpeta `backend/`, crear un entorno virtual:
+
+```bash
+python -m venv .venv
+```
+
+En PowerShell, activarlo con:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+En Linux o macOS, activarlo con:
+
+```bash
+source .venv/bin/activate
+```
+
+Instalar el proyecto junto con las dependencias de prueba:
+
+```bash
+python -m pip install -e ".[test]"
+```
+
+## Configuración local
+
+Crear el archivo local de variables a partir del ejemplo:
+
+En PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+En Linux o macOS:
+
+```bash
+cp .env.example .env
+```
+
+Después, sustituir en `.env` todos los valores ilustrativos. Este archivo
+contiene información sensible y no debe incorporarse a Git. La preparación
+asistida de PostgreSQL, migraciones y credenciales de prueba se encuentra en
+[`docs/ejecucion-local.md`](../docs/ejecucion-local.md).
+
+| Variable | Propósito |
+|---|---|
+| `APP_ENV` | Identifica el entorno: `development`, `test` o `production`. |
+| `DATABASE_URL` | Define la conexión con PostgreSQL. |
+| `TELEGRAM_BOT_TOKEN` | Contiene el token privado entregado por BotFather. |
+| `JWT_SECRET` | Contiene el secreto utilizado para firmar JWT. |
+| `MEDIA_ROOT` | Define el directorio privado de evidencias. |
+| `PAYMENT_QR_PATH` | Define la imagen QR utilizada por el flujo de pago. |
+
+Las variables definidas directamente en el sistema tienen prioridad sobre las
+escritas en `.env`. La configuración solo se carga cuando una operación llama a
+`get_settings()`; importar la aplicación no exige secretos ni abre conexiones.
+
+## Acceso a PostgreSQL
+
+La capa `app.db.session` prepara el acceso asíncrono mediante SQLAlchemy 2 y
+Psycopg 3. Proporciona operaciones explícitas para:
+
+- construir el motor desde `DATABASE_URL`;
+- crear la factoría de sesiones;
+- confirmar o revertir una unidad de trabajo;
+- cerrar siempre la sesión;
+- liberar los recursos del motor.
+
+La construcción del motor no abre por sí sola una conexión. Las pruebas
+automatizadas verifican la configuración y el ciclo transaccional sin exigir
+un servidor PostgreSQL activo.
+
+Los modelos persistentes actuales representan al cliente identificado mediante
+Telegram, al repartidor registrado y al administrador del panel. Repartidores y
+administradores permanecen inactivos por defecto hasta que una función
+posterior los habilite. El campo `credencial_hash` del administrador no admite
+un valor predeterminado: deberá recibir exclusivamente una credencial procesada
+por el servicio de seguridad que se implemente después. Todavía no existe
+lógica funcional que consulte o escriba estos datos, y no se utiliza
+`Base.metadata.create_all()`. La conexión contra una base real se incorporará
+en un Issue posterior.
+
+## Base declarativa
+
+La capa `app.db.base` expone una sola clase `Base` y metadatos compartidos para
+los futuros modelos. Las convenciones producen nombres previsibles para
+índices, restricciones únicas, restricciones `CHECK`, claves foráneas y claves
+primarias.
+
+Estos metadatos permiten que Alembic compare los modelos con el esquema.
+Actualmente contienen únicamente las tablas `clientes`, `repartidores` y
+`administradores`; importar los modelos no ejecuta SQL ni crea el esquema.
+
+## Migraciones
+
+Alembic está configurado para utilizar `Base.metadata` y obtener
+`DATABASE_URL` desde el entorno. `alembic.ini` no contiene credenciales.
+
+Inspeccionar las cabezas del historial desde `backend/`:
+
+```bash
+python -m alembic -c alembic.ini heads
+```
+
+La cabeza actual corresponde a la tercera revisión, que crea
+`administradores` después de `repartidores`. Generar la representación SQL del
+historial completo sin abrir una conexión:
+
+```bash
+python -m alembic -c alembic.ini upgrade head --sql
+```
+
+La preparación local aplica el historial completo con
+`python -m app.cli.bootstrap_local`. Toda nueva revisión deberá inspeccionarse
+antes del commit.
+
+## Protección de contraseñas
+
+La capa `app.core.security` utiliza Argon2id para generar y verificar las
+credenciales administrativas. Su configuración inicial corresponde a la
+decisión DT-015:
+
+- memoria: `19456` KiB;
+- iteraciones: `2`;
+- paralelismo: `1`.
+
+Cada hash incorpora una sal aleatoria generada por la biblioteca y conserva el
+formato PHC completo. El servicio también permite detectar hashes que necesitan
+actualizarse cuando cambien los parámetros.
+
+Esta capa no crea administradores, no persiste contraseñas, no emite JWT y no
+implementa el inicio de sesión. Los parámetros todavía deben medirse en el VPS
+de Hetzner antes del despliegue.
+
+## Tokens administrativos
+
+La capa `app.core.tokens` emite y valida tokens de acceso firmados únicamente
+con `HS256`. Cada token dura 15 minutos, recibe un `jti` único y contiene las
+ocho claims establecidas en DT-014. La validación exige firma, algoritmo,
+emisor, audiencia, vigencia, identidad y rol, con una tolerancia temporal
+máxima de 30 segundos.
+
+`JWT_SECRET` puede cargarse de forma aislada sin exigir PostgreSQL ni Telegram.
+Debe tener al menos 32 caracteres y nunca se incorpora al repositorio. Esta
+validación de longitud no reemplaza la generación aleatoria de al menos 256 bits
+requerida para los entornos reales.
+
+El servicio todavía no autentica credenciales, no consulta administradores, no
+registra revocaciones y no protege endpoints FastAPI. Tampoco emite refresh
+tokens.
+
+La persistencia dispone de la tabla `tokens_revocados` para conservar un `jti`,
+el administrador relacionado, la fecha de revocación y el vencimiento. El JWT
+completo no forma parte del modelo. La cabeza actual de Alembic es
+`0004_tokens_revocados`; puede inspeccionarse su reversión sin conexión con:
+
+```bash
+python -m alembic -c alembic.ini downgrade 0004_tokens_revocados:0003_administradores --sql
+```
+
+Todavía no existe lógica para registrar, consultar o eliminar revocaciones.
+
+## Catálogo de platos
+
+El modelo `Plato` inicia el catálogo persistente con nombre, descripción,
+precio decimal y estado. Los platos permanecen inactivos por defecto y el
+precio no puede ser negativo. La cabeza de Alembic es `0005_platos`.
+
+Este incremento todavía no incorpora CRUD, imágenes, menús, stock, endpoints
+ni integración con el bot o el panel.
+
+## Programación de menús
+
+El modelo `Menu` representa una oferta diaria mediante una fecha única y un
+estado inactivo por defecto. La cabeza de Alembic es `0006_menus`.
+
+Todavía no se asocian platos, stock o disponibilidad y no existen menús reales
+registrados.
+
+El modelo `DetalleMenu` relaciona cada menú con sus platos, conserva el stock
+no negativo y comienza como no disponible. La combinación de menú y plato es
+única. La cabeza de Alembic es `0007_detalles_menu`.
+
+Todavía no existen operaciones que registren ofertas o descuenten stock.
+
+El modelo `Pedido` conserva la cabecera vinculada con un cliente, el estado
+inicial `BORRADOR`, el total, el destino fijo y un código de seguimiento
+opcional mientras se prepara el pedido. El total no puede ser negativo y la
+cabeza de Alembic es `0008_pedidos`.
+
+Todavía no se incorporan detalles, cálculos, transiciones, servicios ni
+interfaces para gestionar pedidos.
+
+El modelo `DetallePedido` conserva el nombre, el precio unitario, la cantidad y
+el subtotal utilizados en un pedido. Sus importes no pueden ser negativos y la
+cantidad debe ser mayor que cero. La cabeza de Alembic es
+`0009_detalles_pedido`.
+
+Todavía no existen operaciones que creen detalles, calculen importes o
+modifiquen stock.
+
+El modelo `ComprobantePago` conserva la referencia relativa y los metadatos de
+cada archivo enviado, comienza en estado `PENDIENTE` y permite incorporar al
+administrador y el resultado cuando ocurra la revisión. La cabeza de Alembic es
+`0010_comprobantes_pago`.
+
+Todavía no se reciben archivos, no se revisan comprobantes y no se confirma el
+pago.
+
+El modelo `Asignacion` conserva el historial entre pedidos y repartidores,
+incluye las fechas de acuse y cierre opcionales y utiliza un índice único
+parcial para impedir más de una asignación activa por pedido. La cabeza de
+Alembic es `0011_asignaciones`.
+
+Todavía no se asignan ni reasignan repartidores y no se envían notificaciones.
+
+Los modelos `UbicacionTrayecto`, `EvidenciaEntrega` e `HistorialEstado`
+completan la persistencia básica de trazabilidad. Los puntos y evidencias se
+vinculan con una asignación concreta, mientras que el historial conserva los
+eventos del pedido y admite como máximo un actor identificado. La cabeza de
+Alembic es `0014_historial_estados`.
+
+Todavía no se reciben ubicaciones o evidencias, no se almacenan fotografías y
+no se ejecutan transiciones de estado.
+
+Los servicios de catálogo y menú permiten crear, consultar, editar y desactivar
+platos; programar una oferta por fecha; activar el menú; incorporar o retirar
+platos; y controlar stock y disponibilidad. Las operaciones son asíncronas,
+validan los datos antes de persistir y dejan el commit a la unidad de trabajo.
+
+La consulta compartida de oferta disponible exige menú y plato activos, detalle
+visible y stock mayor que cero. Todavía no existen endpoints ni interfaces para
+consumir estos servicios.
+
+El servicio de pedidos permite crear o recuperar un borrador, administrar sus
+detalles históricos y recalcular importes. La confirmación bloquea las filas de
+stock, valida todo el carrito antes de modificarlo, genera un código único,
+descuenta existencias y registra el paso a `PENDIENTE_UBICACION`.
+
+Repetir una confirmación ya completada devuelve el mismo pedido sin duplicar el
+descuento ni el historial. La confirmación también conserva el menú de origen
+mediante la revisión `0015_pedido_menu`.
+
+El servicio del ciclo posterior registra el destino, los metadatos del
+comprobante y su revisión administrativa. La aprobación conduce a
+`PAGO_CONFIRMADO`; el rechazo conserva el intento y vuelve a
+`PENDIENTE_COMPROBANTE`.
+
+La cancelación bloquea los detalles del menú de origen, valida toda la oferta y
+repone el stock una sola vez antes de registrar `CANCELADO`. Todavía no se
+escriben archivos físicos ni existen endpoints o interfaces para estas
+operaciones.
+
+El servicio de reparto permite asignar o reasignar un repartidor habilitado,
+registrar su acuse, iniciar el trayecto, conservar ubicaciones, diferenciar la
+llegada y confirmar la entrega. Todas las acciones validan la asignación activa
+y mantienen la secuencia de estados compartida.
+
+La reasignación cierra el vínculo anterior sin eliminarlo y devuelve el pedido
+a `ASIGNADO`. La entrega admite fotografía con metadatos o código, registra
+`ENTREGADO` y cierra la asignación. Los reintentos controlados no duplican
+eventos, puntos idénticos ni evidencias.
+
+Todavía no se envían notificaciones, no se reciben actualizaciones desde
+Telegram y no se escriben fotografías en el sistema de archivos.
+
+La API administrativa registra sus routers bajo `/api` y publica contratos
+OpenAPI para autenticación, catálogo, menús, pedidos, comprobantes,
+asignaciones e información de seguimiento. Los modelos de respuesta excluyen
+hashes, secretos y contenido binario.
+
+El inicio de sesión utiliza Argon2id y emite el JWT de corta duración definido
+por el proyecto. Cada endpoint protegido valida Bearer, firma, claims,
+revocación y estado del administrador. El cierre de sesión conserva únicamente
+el `jti` y su vencimiento.
+
+Cada solicitud recibe una sesión asíncrona administrada como unidad de trabajo.
+Los errores controlados se traducen a HTTP 404, 409 o 422 y una excepción
+revierte la transacción. El bot consume directamente los servicios del dominio;
+no se exponen endpoints específicos para Telegram ni carga multipart.
+
+La segunda parte del panel incorpora consultas autenticadas de clientes,
+archivos privados y reportes. La ficha calcula la frecuencia desde pedidos
+persistidos. El archivo del comprobante se resuelve únicamente dentro de
+`MEDIA_ROOT` y se entrega después de validar el JWT.
+
+`GET /api/reportes?fecha=AAAA-MM-DD` calcula ventas del día usando solo pedidos
+con pago confirmado o estados posteriores, agrupa las unidades de los platos
+más pedidos y promedia el tiempo entre `EN_CAMINO` y `ENTREGADO`. Si no existen
+entregas completas, el promedio se devuelve como `null`; ninguna cifra está
+escrita directamente en el panel.
+
+## Bot de Telegram: flujo del cliente
+
+El paquete `app.bot` implementa el flujo conversacional del cliente con
+Aiogram. `/start` y `/reiniciar` reconocen al usuario mediante su `chat_id` y
+consultan el menú activo de la fecha en PostgreSQL. Los botones inline permiten
+agregar platos, revisar el carrito, modificar cantidades, eliminar líneas y
+confirmar el pedido reutilizando los servicios transaccionales del dominio.
+
+Después de confirmar, el bot solicita un objeto `Location`, envía como
+fotografía el QR configurado en `PAYMENT_QR_PATH` y recibe la fotografía del
+comprobante. Los archivos se descargan debajo de `MEDIA_ROOT`; la base de datos
+conserva su referencia relativa y metadatos. El directorio debe ser persistente
+en el VPS y no debe exponerse como carpeta pública.
+
+La recepción del comprobante deja el pedido en revisión. **El pago no se valida
+automáticamente:** una persona autorizada debe aprobarlo desde el panel.
+`/cancelar` controla la interrupción del flujo y los mensajes inesperados
+ofrecen opciones de recuperación. Las confirmaciones y cancelaciones reutilizan
+las protecciones de idempotencia y stock de los servicios existentes.
+
+Para iniciar el bot desde `backend/`:
+
+```bash
+python -m app.bot.run
+```
+
+Se requieren `DATABASE_URL`, `TELEGRAM_BOT_TOKEN`, `MEDIA_ROOT` y
+`PAYMENT_QR_PATH`. El archivo del QR debe existir antes de probar el flujo de
+pago. El bot usa long polling en el MVP; el VPS deberá ejecutar este proceso de
+forma separada a FastAPI.
+
+## Bot de Telegram: flujo del repartidor
+
+Los comandos `/repartidor` y `/mi_entrega` consultan el `chat_id` en la lista
+de repartidores registrados y activos. Un chat no habilitado no puede leer ni
+operar asignaciones. El detalle incluye platos, cantidades, total, estado del
+pago, cliente, contacto, referencia y el objeto `Location` del destino.
+
+La asignación continúa siendo una decisión exclusiva del administrador. La API
+envía al nuevo repartidor una notificación inmediata en segundo plano; no
+existe cola ni competencia. Cada botón vuelve a validar que la asignación
+permanezca activa, por lo que el repartidor anterior deja de operar después de
+una reasignación.
+
+El acuse, el inicio del trayecto y la llegada son eventos separados. Durante
+`EN_CAMINO`, el repartidor debe compartir una *live location* de Telegram. Para
+la demostración se espera una actualización aproximadamente cada **15
+segundos**, aunque Telegram decide el momento exacto de emisión. El sistema
+persiste cada punto diferente con su fecha y conserva el último cuando se
+interrumpe la señal. Si transcurren más de **30 segundos** sin actualización,
+el panel deberá presentar ese último punto como desactualizado; cuando vuelve
+la conectividad, el mismo recorrido continúa sin borrar ni mezclar posiciones.
+
+La entrega solo se completa después de registrar la llegada y adjuntar una
+fotografía o usar `/entrega CODIGO`. Las fotografías se guardan en
+`MEDIA_ROOT/entregas`. El cliente recibe mensajes diferentes al iniciar el
+trayecto, llegar al destino y completar la entrega.
+
+## Verificación
+
+Desde la carpeta `backend/`, ejecutar:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+Las pruebas confirman que los paquetes pueden importarse, comprueban el endpoint
+de salud y verifican la configuración y las sesiones con valores ficticios. No
+necesitan iniciar un servidor ni conectarse a PostgreSQL o Telegram.
+
+## Ejecución local
+
+Iniciar el servidor de desarrollo desde `backend/`:
+
+```bash
+python -m uvicorn app.main:app --reload
+```
+
+El endpoint técnico queda disponible en:
+
+```text
+GET http://127.0.0.1:8000/api/health
+```
+
+Su respuesta es:
+
+```json
+{"status": "ok"}
+```
+
+El servidor de recarga es únicamente para desarrollo local.
