@@ -1,1 +1,43 @@
 """Futuros servicios y reglas de aplicación del backend."""
+"""Servicios de aplicación independientes de los transportes externos."""
+
+from app.services.catalogo import (
+    actualizar_plato,
+    crear_plato,
+    desactivar_plato,
+    obtener_plato,
+)
+from app.services.errors import (
+    ConflictoServicio,
+    ErrorServicio,
+    ErrorValidacion,
+    RecursoNoEncontrado,
+)
+from app.services.menus import (
+    actualizar_estado_menu,
+    actualizar_oferta,
+    agregar_plato_al_menu,
+    consultar_oferta_disponible,
+    obtener_menu,
+    obtener_o_crear_menu,
+    retirar_plato_del_menu,
+)
+
+
+__all__ = [
+    "ConflictoServicio",
+    "ErrorServicio",
+    "ErrorValidacion",
+    "RecursoNoEncontrado",
+    "actualizar_oferta",
+    "actualizar_estado_menu",
+    "actualizar_plato",
+    "agregar_plato_al_menu",
+    "consultar_oferta_disponible",
+    "crear_plato",
+    "desactivar_plato",
+    "obtener_menu",
+    "obtener_o_crear_menu",
+    "obtener_plato",
+    "retirar_plato_del_menu",
+]

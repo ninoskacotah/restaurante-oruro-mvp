@@ -245,6 +245,15 @@ Alembic es `0014_historial_estados`.
 Todavía no se reciben ubicaciones o evidencias, no se almacenan fotografías y
 no se ejecutan transiciones de estado.
 
+Los servicios de catálogo y menú permiten crear, consultar, editar y desactivar
+platos; programar una oferta por fecha; activar el menú; incorporar o retirar
+platos; y controlar stock y disponibilidad. Las operaciones son asíncronas,
+validan los datos antes de persistir y dejan el commit a la unidad de trabajo.
+
+La consulta compartida de oferta disponible exige menú y plato activos, detalle
+visible y stock mayor que cero. Todavía no existen endpoints ni interfaces para
+consumir estos servicios.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:
