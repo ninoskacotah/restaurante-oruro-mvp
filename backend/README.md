@@ -85,10 +85,12 @@ La construcción del motor no abre por sí sola una conexión. En este increment
 las pruebas verifican la configuración y el ciclo transaccional sin un servidor
 PostgreSQL activo.
 
-El primer modelo persistente representa al cliente identificado mediante
-Telegram. Todavía no existe lógica funcional que consulte o escriba sus datos,
-y no se utiliza `Base.metadata.create_all()`. La conexión contra una base real
-se incorporará en un Issue posterior.
+Los primeros modelos persistentes representan al cliente identificado mediante
+Telegram y al repartidor registrado. Este último permanece inactivo por defecto
+hasta que una función administrativa posterior lo habilite. Todavía no existe
+lógica funcional que consulte o escriba estos datos, y no se utiliza
+`Base.metadata.create_all()`. La conexión contra una base real se incorporará
+en un Issue posterior.
 
 ## Base declarativa
 
@@ -98,8 +100,8 @@ los futuros modelos. Las convenciones producen nombres previsibles para
 primarias.
 
 Estos metadatos permiten que Alembic compare los modelos con el esquema.
-Actualmente contienen únicamente la tabla `clientes`; importar el modelo no
-ejecuta SQL ni crea el esquema.
+Actualmente contienen únicamente las tablas `clientes` y `repartidores`;
+importar los modelos no ejecuta SQL ni crea el esquema.
 
 ## Migraciones
 
@@ -112,17 +114,18 @@ Inspeccionar las cabezas del historial desde `backend/`:
 python -m alembic -c alembic.ini heads
 ```
 
-La primera cabeza corresponde a la creación de la tabla `clientes`. Generar su
-representación SQL sin abrir una conexión:
+La cabeza actual corresponde a la segunda revisión, que crea
+`repartidores` después de `clientes`. Generar la representación SQL del
+historial completo sin abrir una conexión:
 
 ```bash
 python -m alembic -c alembic.ini upgrade head --sql
 ```
 
-También puede inspeccionarse la reversión de esa revisión:
+También puede inspeccionarse únicamente la reversión de la segunda revisión:
 
 ```bash
-python -m alembic -c alembic.ini downgrade 0001_clientes:base --sql
+python -m alembic -c alembic.ini downgrade 0002_repartidores:0001_clientes --sql
 ```
 
 Estos comandos solo imprimen SQL. No debe ejecutarse `upgrade` o `downgrade` en

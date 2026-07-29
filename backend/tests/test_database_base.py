@@ -32,9 +32,12 @@ class DatabaseBaseTest(unittest.TestCase):
         self.assertTrue(issubclass(Base, DeclarativeBase))
         self.assertIs(Base.metadata, metadata)
 
-    def test_metadata_contains_only_authorized_table(self) -> None:
+    def test_metadata_contains_only_authorized_tables(self) -> None:
         """Evita anticipar entidades fuera del alcance del Issue."""
-        self.assertEqual(set(metadata.tables), {"clientes"})
+        self.assertEqual(
+            set(metadata.tables),
+            {"clientes", "repartidores"},
+        )
         self.assertIs(metadata.tables["clientes"], Cliente.__table__)
 
 
