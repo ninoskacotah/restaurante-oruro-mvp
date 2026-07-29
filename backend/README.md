@@ -199,6 +199,12 @@ estado inactivo por defecto. La cabeza de Alembic es `0006_menus`.
 Todavía no se asocian platos, stock o disponibilidad y no existen menús reales
 registrados.
 
+El modelo `DetalleMenu` relaciona cada menú con sus platos, conserva el stock
+no negativo y comienza como no disponible. La combinación de menú y plato es
+única. La cabeza de Alembic es `0007_detalles_menu`.
+
+Todavía no existen operaciones que registren ofertas o descuenten stock.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:
