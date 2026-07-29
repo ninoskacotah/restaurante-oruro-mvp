@@ -1,5 +1,6 @@
 """Configuración del backend obtenida desde el entorno."""
 
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field, PostgresDsn, SecretStr
@@ -33,6 +34,8 @@ class Settings(DatabaseSettings, JwtSettings):
 
     app_env: Literal["development", "test", "production"] = "development"
     telegram_bot_token: SecretStr = Field(min_length=1)
+    media_root: Path = Path("var/media")
+    payment_qr_path: Path = Path("var/payment-qr.png")
 
 
 def get_database_settings() -> DatabaseSettings:

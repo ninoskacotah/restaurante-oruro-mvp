@@ -301,6 +301,37 @@ Los errores controlados se traducen a HTTP 404, 409 o 422 y una excepción
 revierte la transacción. Todavía no existen endpoints para el bot, carga
 multipart de archivos, mapa visual o reportes.
 
+## Bot de Telegram: flujo del cliente
+
+El paquete `app.bot` implementa el flujo conversacional del cliente con
+Aiogram. `/start` y `/reiniciar` reconocen al usuario mediante su `chat_id` y
+consultan el menú activo de la fecha en PostgreSQL. Los botones inline permiten
+agregar platos, revisar el carrito, modificar cantidades, eliminar líneas y
+confirmar el pedido reutilizando los servicios transaccionales del dominio.
+
+Después de confirmar, el bot solicita un objeto `Location`, envía como
+fotografía el QR configurado en `PAYMENT_QR_PATH` y recibe la fotografía del
+comprobante. Los archivos se descargan debajo de `MEDIA_ROOT`; la base de datos
+conserva su referencia relativa y metadatos. El directorio debe ser persistente
+en el VPS y no debe exponerse como carpeta pública.
+
+La recepción del comprobante deja el pedido en revisión. **El pago no se valida
+automáticamente:** una persona autorizada debe aprobarlo desde el panel.
+`/cancelar` controla la interrupción del flujo y los mensajes inesperados
+ofrecen opciones de recuperación. Las confirmaciones y cancelaciones reutilizan
+las protecciones de idempotencia y stock de los servicios existentes.
+
+Para iniciar el bot desde `backend/`:
+
+```bash
+python -m app.bot.run
+```
+
+Se requieren `DATABASE_URL`, `TELEGRAM_BOT_TOKEN`, `MEDIA_ROOT` y
+`PAYMENT_QR_PATH`. El archivo del QR debe existir antes de probar el flujo de
+pago. El bot usa long polling en el MVP; el VPS deberá ejecutar este proceso de
+forma separada a FastAPI.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:
