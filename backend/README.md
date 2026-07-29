@@ -213,6 +213,14 @@ cabeza de Alembic es `0008_pedidos`.
 Todavía no se incorporan detalles, cálculos, transiciones, servicios ni
 interfaces para gestionar pedidos.
 
+El modelo `DetallePedido` conserva el nombre, el precio unitario, la cantidad y
+el subtotal utilizados en un pedido. Sus importes no pueden ser negativos y la
+cantidad debe ser mayor que cero. La cabeza de Alembic es
+`0009_detalles_pedido`.
+
+Todavía no existen operaciones que creen detalles, calculen importes o
+modifiquen stock.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:

@@ -9,6 +9,7 @@ from app.models import (
     Administrador,
     Cliente,
     DetalleMenu,
+    DetallePedido,
     Menu,
     Pedido,
     Plato,
@@ -49,6 +50,7 @@ class DatabaseBaseTest(unittest.TestCase):
                 "administradores",
                 "clientes",
                 "detalles_menu",
+                "detalles_pedido",
                 "menus",
                 "pedidos",
                 "platos",
@@ -64,6 +66,10 @@ class DatabaseBaseTest(unittest.TestCase):
         self.assertIs(
             metadata.tables["detalles_menu"],
             DetalleMenu.__table__,
+        )
+        self.assertIs(
+            metadata.tables["detalles_pedido"],
+            DetallePedido.__table__,
         )
         self.assertIs(metadata.tables["menus"], Menu.__table__)
         self.assertIs(metadata.tables["pedidos"], Pedido.__table__)
