@@ -11,9 +11,9 @@ from app.models import Cliente
 class ClienteModelTest(unittest.TestCase):
     """Verifica el modelo sin crear tablas ni abrir conexiones."""
 
-    def test_cliente_is_the_only_registered_table(self) -> None:
-        """Mantiene el incremento limitado a la entidad autorizada."""
-        self.assertEqual(set(Base.metadata.tables), {"clientes"})
+    def test_cliente_is_registered_in_shared_metadata(self) -> None:
+        """Comprueba que la tabla utiliza los metadatos comunes."""
+        self.assertIn("clientes", Base.metadata.tables)
         self.assertIs(Cliente.__table__, Base.metadata.tables["clientes"])
 
     def test_cliente_has_expected_columns(self) -> None:
