@@ -1,7 +1,7 @@
 # Declaración de autoría
 
-Yo, Ninoska Carolina Cota Huallata, postulante a auxiliar de docencia de [asignatura],
-declaro que:
+Yo, Ninoska Carolina Cota Huallata, postulante a auxiliar de docencia de
+Actualización Tecnológica, declaro que:
 
 1. El proyecto contenido en este repositorio es de mi autoría individual.
 2. Creé el repositorio desde cero en mi cuenta personal; no cloné ni forkeé
