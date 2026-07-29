@@ -229,6 +229,13 @@ administrador y el resultado cuando ocurra la revisión. La cabeza de Alembic es
 Todavía no se reciben archivos, no se revisan comprobantes y no se confirma el
 pago.
 
+El modelo `Asignacion` conserva el historial entre pedidos y repartidores,
+incluye las fechas de acuse y cierre opcionales y utiliza un índice único
+parcial para impedir más de una asignación activa por pedido. La cabeza de
+Alembic es `0011_asignaciones`.
+
+Todavía no se asignan ni reasignan repartidores y no se envían notificaciones.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:

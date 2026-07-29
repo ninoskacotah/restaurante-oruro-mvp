@@ -7,6 +7,7 @@ from sqlalchemy.orm import DeclarativeBase
 from app.db.base import Base, NAMING_CONVENTION, metadata
 from app.models import (
     Administrador,
+    Asignacion,
     Cliente,
     ComprobantePago,
     DetalleMenu,
@@ -49,6 +50,7 @@ class DatabaseBaseTest(unittest.TestCase):
             set(metadata.tables),
             {
                 "administradores",
+                "asignaciones",
                 "clientes",
                 "comprobantes_pago",
                 "detalles_menu",
@@ -63,6 +65,10 @@ class DatabaseBaseTest(unittest.TestCase):
         self.assertIs(
             metadata.tables["administradores"],
             Administrador.__table__,
+        )
+        self.assertIs(
+            metadata.tables["asignaciones"],
+            Asignacion.__table__,
         )
         self.assertIs(metadata.tables["clientes"], Cliente.__table__)
         self.assertIs(
