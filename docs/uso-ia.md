@@ -69,15 +69,16 @@ decisiones y las autorizaciones realizadas por la autora.
 | 2026-07-29 | Issue #107 / PR #108 | Incorporar en la declaración de autoría el nombre completo proporcionado por la autora. | La sustitución puntual del marcador de nombre, conservando pendiente el dato de asignatura. | La autora indicó expresamente en la conversación el nombre `Ninoska Carolina Cota Huallata`; el diff se limitó a ese dato respaldado. | Se actualizó `docs/declaracion-autoria.md` sin alterar los compromisos ni inventar la asignatura. |
 | 2026-07-29 | Issue #109 / PR #110 | Incorporar en la declaración de autoría la asignatura proporcionada por la autora. | La sustitución puntual del marcador por `Actualización Tecnológica`. | La autora indicó expresamente el nombre de la asignatura y se revisó que el resto de la declaración permaneciera sin cambios. | Se completó el dato académico pendiente en `docs/declaracion-autoria.md`. |
 | 2026-07-29 | Issue #111 / PR #112 | Seleccionar evidencias visuales reales del bot para la documentación final. | Una revisión de ocho imágenes y la selección de dos capturas que muestran menú y carrito sin exponer ubicación, QR ni comprobantes. | Se inspeccionaron las imágenes proporcionadas por la autora y se excluyeron las que contenían información innecesaria o sensible, incluso cuando correspondía a datos de prueba. | Se incorporaron dos capturas seguras y se actualizaron README y validación integral. |
+| 2026-07-29 | Issue #5 / PR pendiente y PR de entrega #113 | Apoyar la revisión final del registro vivo y la preparación de la integración estable. | Una comprobación de las entradas contra el historial, los resultados finales y los documentos incorporados antes de abrir el PR hacia `main`. | Se contrastaron Issues, Pull Requests, pruebas, evidencias, declaración de autoría y estado limpio de `develop`; la autora proporcionó sus datos y las capturas reales faltantes. | Se finalizó este registro y se abrió el PR #113 de `develop` hacia `main`, manteniéndolo sin merge hasta cerrar el Issue #5. |
 
 ## Actualización del registro
 
-Cuando se utilice IA en un Issue posterior, su propio Pull Request deberá incluir
-la actualización de este archivo. La entrada se referirá al Issue y al PR
-correspondientes y describirá únicamente actividades reales y verificables.
+Durante el desarrollo, cada Pull Request que utilizó IA incorporó la
+actualización correspondiente de este archivo. Las entradas se refieren a
+actividades reales y verificables y se vinculan con sus Issues y Pull Requests.
 
-No se crearán fechas, resultados o verificaciones ficticias. Si un Issue no
-utiliza IA, no se añadirá una entrada que indique lo contrario.
+El registro fue revisado antes de la integración estable. No se añadieron
+fechas, resultados ni verificaciones ficticias.
 
 ## Dónde NO se usó IA
 
