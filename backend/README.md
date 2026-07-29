@@ -85,9 +85,12 @@ La construcción del motor no abre por sí sola una conexión. En este increment
 las pruebas verifican la configuración y el ciclo transaccional sin un servidor
 PostgreSQL activo.
 
-Los primeros modelos persistentes representan al cliente identificado mediante
-Telegram y al repartidor registrado. Este último permanece inactivo por defecto
-hasta que una función administrativa posterior lo habilite. Todavía no existe
+Los modelos persistentes actuales representan al cliente identificado mediante
+Telegram, al repartidor registrado y al administrador del panel. Repartidores y
+administradores permanecen inactivos por defecto hasta que una función
+posterior los habilite. El campo `credencial_hash` del administrador no admite
+un valor predeterminado: deberá recibir exclusivamente una credencial procesada
+por el servicio de seguridad que se implemente después. Todavía no existe
 lógica funcional que consulte o escriba estos datos, y no se utiliza
 `Base.metadata.create_all()`. La conexión contra una base real se incorporará
 en un Issue posterior.
@@ -100,8 +103,8 @@ los futuros modelos. Las convenciones producen nombres previsibles para
 primarias.
 
 Estos metadatos permiten que Alembic compare los modelos con el esquema.
-Actualmente contienen únicamente las tablas `clientes` y `repartidores`;
-importar los modelos no ejecuta SQL ni crea el esquema.
+Actualmente contienen únicamente las tablas `clientes`, `repartidores` y
+`administradores`; importar los modelos no ejecuta SQL ni crea el esquema.
 
 ## Migraciones
 
@@ -114,18 +117,18 @@ Inspeccionar las cabezas del historial desde `backend/`:
 python -m alembic -c alembic.ini heads
 ```
 
-La cabeza actual corresponde a la segunda revisión, que crea
-`repartidores` después de `clientes`. Generar la representación SQL del
+La cabeza actual corresponde a la tercera revisión, que crea
+`administradores` después de `repartidores`. Generar la representación SQL del
 historial completo sin abrir una conexión:
 
 ```bash
 python -m alembic -c alembic.ini upgrade head --sql
 ```
 
-También puede inspeccionarse únicamente la reversión de la segunda revisión:
+También puede inspeccionarse únicamente la reversión de la tercera revisión:
 
 ```bash
-python -m alembic -c alembic.ini downgrade 0002_repartidores:0001_clientes --sql
+python -m alembic -c alembic.ini downgrade 0003_administradores:0002_repartidores --sql
 ```
 
 Estos comandos solo imprimen SQL. No debe ejecutarse `upgrade` o `downgrade` en
