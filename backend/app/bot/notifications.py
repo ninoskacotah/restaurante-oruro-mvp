@@ -5,6 +5,10 @@ from aiogram import Bot
 
 STATE_MESSAGES = {
     "PAGO_CONFIRMADO": "Tu pago fue confirmado.",
+    "PAGO_RECHAZADO": (
+        "Tu comprobante fue rechazado. "
+        "Envía una nueva fotografía para revisión."
+    ),
     "ASIGNADO": "Tu pedido fue asignado a un repartidor.",
     "EN_CAMINO": "Tu pedido está en camino.",
     "EN_DESTINO": "El repartidor llegó al destino.",

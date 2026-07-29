@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import (
     Administrador,
+    Asignacion,
     ComprobantePago,
     DetalleMenu,
     DetallePedido,
@@ -32,6 +33,12 @@ ESTADOS_CANCELABLES = {
     ESTADO_PENDIENTE_COMPROBANTE,
     ESTADO_PAGO_EN_REVISION,
     ESTADO_PAGO_CONFIRMADO,
+    "ASIGNADO",
+    "ACEPTADO_REPARTIDOR",
+    "EN_CAMINO",
+    "EN_DESTINO",
+}
+ESTADOS_CON_ASIGNACION = {
     "ASIGNADO",
     "ACEPTADO_REPARTIDOR",
     "EN_CAMINO",
@@ -261,6 +268,19 @@ async def cancelar_pedido(
         oferta.stock += detalle.cantidad
 
     estado_anterior = pedido.estado_actual
+    if estado_anterior in ESTADOS_CON_ASIGNACION:
+        result = await session.execute(
+            select(Asignacion)
+            .where(
+                Asignacion.pedido_id == pedido.id,
+                Asignacion.activa.is_(True),
+            )
+            .with_for_update()
+        )
+        for asignacion in result.scalars().all():
+            asignacion.activa = False
+            asignacion.fecha_cierre = datetime.now(timezone.utc)
+
     pedido.estado_actual = ESTADO_CANCELADO
     session.add(
         _historial(

@@ -101,3 +101,14 @@ class BotSettingsTests(unittest.TestCase):
 
         self.assertIn('sys.platform == "win32"', source)
         self.assertIn("loop_factory=asyncio.SelectorEventLoop", source)
+
+    def test_rejected_payment_has_a_client_notification(self) -> None:
+        source = (
+            Path(__file__).resolve().parents[1]
+            / "app"
+            / "bot"
+            / "notifications.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('"PAGO_RECHAZADO"', source)
+        self.assertIn("Envía una nueva fotografía", source)
