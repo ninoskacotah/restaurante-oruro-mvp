@@ -136,6 +136,24 @@ modo online ni otro comando que modifique una base hasta trabajar el Issue
 específico correspondiente. Toda nueva revisión deberá inspeccionarse antes del
 commit.
 
+## Protección de contraseñas
+
+La capa `app.core.security` utiliza Argon2id para generar y verificar las
+credenciales administrativas. Su configuración inicial corresponde a la
+decisión DT-015:
+
+- memoria: `19456` KiB;
+- iteraciones: `2`;
+- paralelismo: `1`.
+
+Cada hash incorpora una sal aleatoria generada por la biblioteca y conserva el
+formato PHC completo. El servicio también permite detectar hashes que necesitan
+actualizarse cuando cambien los parámetros.
+
+Esta capa no crea administradores, no persiste contraseñas, no emite JWT y no
+implementa el inicio de sesión. Los parámetros todavía deben medirse en el VPS
+de Hetzner antes del despliegue.
+
 ## Verificación
 
 Desde la carpeta `backend/`, ejecutar:
