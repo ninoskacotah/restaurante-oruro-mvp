@@ -48,13 +48,20 @@ class AlembicConfigTest(unittest.TestCase):
         script = ScriptDirectory.from_config(config)
         revisions = list(script.walk_revisions())
 
-        self.assertEqual(len(revisions), 3)
-        self.assertEqual(revisions[0].revision, "0003_administradores")
-        self.assertEqual(revisions[0].down_revision, "0002_repartidores")
-        self.assertEqual(revisions[1].revision, "0002_repartidores")
-        self.assertEqual(revisions[1].down_revision, "0001_clientes")
-        self.assertEqual(revisions[2].revision, "0001_clientes")
-        self.assertIsNone(revisions[2].down_revision)
+        self.assertEqual(len(revisions), 4)
+        expected_chain = [
+            ("0004_tokens_revocados", "0003_administradores"),
+            ("0003_administradores", "0002_repartidores"),
+            ("0002_repartidores", "0001_clientes"),
+            ("0001_clientes", None),
+        ]
+        self.assertEqual(
+            [
+                (revision.revision, revision.down_revision)
+                for revision in revisions
+            ],
+            expected_chain,
+        )
         self.assertEqual(
             sorted(
                 path.name
@@ -66,15 +73,16 @@ class AlembicConfigTest(unittest.TestCase):
                 "0001_crear_tabla_clientes.py",
                 "0002_crear_tabla_repartidores.py",
                 "0003_crear_tabla_administradores.py",
+                "0004_crear_tabla_tokens_revocados.py",
             ],
         )
 
-    def test_heads_command_lists_third_revision(self) -> None:
+    def test_heads_command_lists_fourth_revision(self) -> None:
         """Inspecciona el historial sin necesitar PostgreSQL."""
         result = self.run_alembic("heads")
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("0003_administradores (head)", result.stdout)
+        self.assertIn("0004_tokens_revocados (head)", result.stdout)
 
     def test_offline_upgrade_succeeds_without_connection(self) -> None:
         """Genera el SQL de avance con una URL ficticia."""
@@ -84,23 +92,26 @@ class AlembicConfigTest(unittest.TestCase):
         self.assertIn("CREATE TABLE clientes", result.stdout)
         self.assertIn("CREATE TABLE repartidores", result.stdout)
         self.assertIn("CREATE TABLE administradores", result.stdout)
+        self.assertIn("CREATE TABLE tokens_revocados", result.stdout)
         self.assertIn("uq_clientes_chat_id", result.stdout)
         self.assertIn("uq_repartidores_chat_id", result.stdout)
         self.assertIn(
             "uq_administradores_nombre_usuario",
             result.stdout,
         )
+        self.assertIn("uq_tokens_revocados_jti", result.stdout)
 
     def test_offline_downgrade_succeeds_without_connection(self) -> None:
         """Genera el SQL de reversión sin conectarse a PostgreSQL."""
         result = self.run_alembic(
             "downgrade",
-            "0003_administradores:0002_repartidores",
+            "0004_tokens_revocados:0003_administradores",
             "--sql",
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("DROP TABLE administradores", result.stdout)
+        self.assertIn("DROP TABLE tokens_revocados", result.stdout)
+        self.assertNotIn("DROP TABLE administradores", result.stdout)
         self.assertNotIn("DROP TABLE repartidores", result.stdout)
         self.assertNotIn("DROP TABLE clientes", result.stdout)
 
