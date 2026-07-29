@@ -5,6 +5,9 @@ import { apiRequest, readToken } from "./services/api.js";
 import CatalogView from "./views/CatalogView.vue";
 import LoginView from "./views/LoginView.vue";
 import MenusView from "./views/MenusView.vue";
+import OrdersView from "./views/OrdersView.vue";
+import ClientsView from "./views/ClientsView.vue";
+import ReportsView from "./views/ReportsView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -18,6 +21,9 @@ const router = createRouter({
         { path: "", redirect: "/catalogo" },
         { path: "catalogo", name: "catalog", component: CatalogView },
         { path: "menus", name: "menus", component: MenusView },
+        { path: "pedidos", name: "orders", component: OrdersView },
+        { path: "clientes", name: "clients", component: ClientsView },
+        { path: "reportes", name: "reports", component: ReportsView },
       ],
     },
     { path: "/:pathMatch(.*)*", redirect: "/" },

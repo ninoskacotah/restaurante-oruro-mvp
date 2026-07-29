@@ -68,3 +68,18 @@ export async function logout() {
     clearToken();
   }
 }
+
+export async function apiObjectUrl(path) {
+  const headers = new Headers();
+  const token = readToken();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const response = await fetch(`${API_ROOT}${path}`, { headers });
+  if (response.status === 401) {
+    clearToken();
+    window.dispatchEvent(new Event("auth-expired"));
+  }
+  if (!response.ok) {
+    throw new Error("No fue posible cargar el archivo protegido.");
+  }
+  return URL.createObjectURL(await response.blob());
+}

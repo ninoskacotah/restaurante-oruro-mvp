@@ -3,6 +3,11 @@
 Aplicación Vue 3 y Vite que consume la API REST del proyecto. Esta primera
 entrega cubre autenticación, platos y programación de menús.
 
+La segunda parte añade el tablero de pedidos, revisión manual de comprobantes,
+asignación y reasignación, seguimiento con OpenStreetMap/Leaflet, fichas de
+clientes y reportes calculados por la API. El mapa conserva el último punto y
+advierte cuando supera 30 segundos sin actualización.
+
 ## Desarrollo local
 
 Desde `frontend/`:

@@ -298,8 +298,19 @@ el `jti` y su vencimiento.
 
 Cada solicitud recibe una sesión asíncrona administrada como unidad de trabajo.
 Los errores controlados se traducen a HTTP 404, 409 o 422 y una excepción
-revierte la transacción. Todavía no existen endpoints para el bot, carga
-multipart de archivos, mapa visual o reportes.
+revierte la transacción. El bot consume directamente los servicios del dominio;
+no se exponen endpoints específicos para Telegram ni carga multipart.
+
+La segunda parte del panel incorpora consultas autenticadas de clientes,
+archivos privados y reportes. La ficha calcula la frecuencia desde pedidos
+persistidos. El archivo del comprobante se resuelve únicamente dentro de
+`MEDIA_ROOT` y se entrega después de validar el JWT.
+
+`GET /api/reportes?fecha=AAAA-MM-DD` calcula ventas del día usando solo pedidos
+con pago confirmado o estados posteriores, agrupa las unidades de los platos
+más pedidos y promedia el tiempo entre `EN_CAMINO` y `ENTREGADO`. Si no existen
+entregas completas, el promedio se devuelve como `null`; ninguna cifra está
+escrita directamente en el panel.
 
 ## Bot de Telegram: flujo del cliente
 

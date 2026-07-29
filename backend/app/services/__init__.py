@@ -44,6 +44,11 @@ from app.services.reparto import (
     registrar_llegada,
     registrar_ubicacion_trayecto,
 )
+from app.services.reportes import (
+    average_delivery_minutes,
+    daily_sales,
+    popular_dishes,
+)
 
 
 __all__ = [
@@ -78,4 +83,7 @@ __all__ = [
     "registrar_llegada",
     "revisar_comprobante_pago",
     "modificar_cantidad_carrito",
+    "average_delivery_minutes",
+    "daily_sales",
+    "popular_dishes",
 ]

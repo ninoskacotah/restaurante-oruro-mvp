@@ -23,6 +23,10 @@ from app.schemas.api import (
     RepartidorOutput,
     SeguimientoOutput,
     TokenOutput,
+    ClienteDetailOutput,
+    ClienteOutput,
+    PlatoPopularOutput,
+    ReportesOutput,
 )
 
 
@@ -48,4 +52,8 @@ __all__ = [
     "RepartidorOutput",
     "SeguimientoOutput",
     "TokenOutput",
+    "ClienteDetailOutput",
+    "ClienteOutput",
+    "PlatoPopularOutput",
+    "ReportesOutput",
 ]

@@ -35,6 +35,9 @@ onBeforeUnmount(() =>
       <nav aria-label="Navegación administrativa">
         <RouterLink to="/catalogo">Platos</RouterLink>
         <RouterLink to="/menus">Menús</RouterLink>
+        <RouterLink to="/pedidos">Pedidos</RouterLink>
+        <RouterLink to="/clientes">Clientes</RouterLink>
+        <RouterLink to="/reportes">Reportes</RouterLink>
       </nav>
       <button class="button button-ghost" type="button" @click="closeSession">
         Cerrar sesión
