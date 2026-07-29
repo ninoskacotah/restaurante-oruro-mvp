@@ -7,6 +7,7 @@ from app.api.health import router as health_router
 from app.api.routes.auth import router as auth_router
 from app.api.routes.catalogo import router as catalog_router
 from app.api.routes.pedidos import router as orders_router
+from app.api.routes.panel import router as panel_router
 from app.services.errors import (
     ConflictoServicio,
     ErrorValidacion,
@@ -24,6 +25,7 @@ def create_app() -> FastAPI:
     application.include_router(auth_router, prefix="/api")
     application.include_router(catalog_router, prefix="/api")
     application.include_router(orders_router, prefix="/api")
+    application.include_router(panel_router, prefix="/api")
 
     @application.exception_handler(ErrorValidacion)
     async def validation_error(

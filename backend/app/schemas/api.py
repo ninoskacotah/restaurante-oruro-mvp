@@ -202,3 +202,39 @@ class SeguimientoOutput(BaseModel):
     latitud: Decimal | None
     longitud: Decimal | None
     fecha_registro: datetime | None
+
+
+class ClienteOutput(ApiModel):
+    """Perfil del cliente para su ficha administrativa."""
+
+    id: int
+    chat_id: str
+    nombre: str | None
+    telefono: str | None
+    fecha_registro: datetime
+
+
+class ClienteDetailOutput(BaseModel):
+    """Ficha con historial y frecuencia calculados."""
+
+    cliente: ClienteOutput
+    pedidos: list[PedidoOutput]
+    frecuencia_pedidos: int
+
+
+class PlatoPopularOutput(BaseModel):
+    """Cantidad vendida de un plato dentro del periodo."""
+
+    plato_id: int
+    nombre: str
+    cantidad: int
+
+
+class ReportesOutput(BaseModel):
+    """Tres indicadores calculados a partir de pedidos persistidos."""
+
+    fecha: date
+    ventas_dia: Decimal
+    pedidos_contabilizados: int
+    platos_mas_pedidos: list[PlatoPopularOutput]
+    tiempo_promedio_entrega_minutos: Decimal | None
